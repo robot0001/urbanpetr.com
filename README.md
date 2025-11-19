@@ -8,4 +8,5 @@
 - have an AWS account and aws cli running
   - AWS user allowing terraform via github (ie. `terraform-github`) 
   - (optional) AWS user who can run terraform locally
-- have a DynamoDB table for terraform state for github integration
+- for github integration
+    - have a DynamoDB table for terraform state
