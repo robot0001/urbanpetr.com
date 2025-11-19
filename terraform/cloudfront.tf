@@ -22,10 +22,9 @@ resource "aws_s3_bucket_policy" "site" {
 }
 
 locals {
-  cf_aliases = var.enable_www
-    ? [var.domain_name, "www.${var.domain_name}"]
-    : [var.domain_name]
+  cf_aliases = var.enable_www ? [var.domain_name, "www.${var.domain_name}"] : [var.domain_name]
 }
+
 
 resource "aws_cloudfront_distribution" "site" {
   enabled             = true
