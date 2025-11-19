@@ -1,0 +1,23 @@
+variable "aws_region" {
+  description = "AWS region to deploy resources to"
+  type        = string
+  default     = "eu-central-1"
+}
+
+variable "aws_profile" {
+  description = "AWS profile"
+  type        = string
+  default     = "terraform"
+}
+
+variable "project_name" {
+  description = "Project name used for tagging"
+  type        = string
+  default     = "static-site"
+}
+
+variable "s3_bucket_name" {
+  description = "Name of the S3 bucket to create (must be globally unique)"
+  type        = string
+  default     = "urbanpetr-website"
+}
