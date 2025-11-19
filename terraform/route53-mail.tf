@@ -1,0 +1,27 @@
+# CNAME: mail.urbanpetr.com -> ghs.google.com
+resource "aws_route53_record" "mail_cname" {
+  zone_id = aws_route53_zone.primary.zone_id
+  name    = "mail.${var.domain_name}"   # mail.urbanpetr.com
+  type    = "CNAME"
+  ttl     = 1800
+
+  records = ["ghs.google.com."]
+}
+
+# MX records for Google Apps / Workspace
+resource "aws_route53_record" "mx_google" {
+  zone_id = aws_route53_zone.primary.zone_id
+  name    = var.domain_name              # urbanpetr.com
+  type    = "MX"
+  ttl     = 1800
+
+  records = [
+    "10 aspmx.l.google.com.",
+    "20 alt1.aspmx.l.google.com.",
+    "20 alt2.aspmx.l.google.com.",
+    "30 aspmx2.googlemail.com.",
+    "30 aspmx3.googlemail.com.",
+    "30 aspmx4.googlemail.com.",
+    "30 aspmx5.googlemail.com.",
+  ]
+}

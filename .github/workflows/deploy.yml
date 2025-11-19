@@ -51,7 +51,7 @@ jobs:
       - name: Terraform plan (PR)
         if: github.event_name == 'pull_request'
         working-directory: terraform
-        run: terraform plan -input=false -no-color
+        run: terraform plan -var-file="env/prod.tfvars" -input=false -no-color
 
       - name: Terraform apply (main)
         if: github.event_name == 'push'
@@ -59,7 +59,7 @@ jobs:
         env:
           # TF needs to know the name of the bucket when using var.s3_bucket_name
           TF_VAR_s3_bucket_name: ${{ env.S3_BUCKET }}
-        run: terraform apply -auto-approve -input=false
+        run: terraform apply -var-file="env/prod.tfvars" -auto-approve -input=false
 
   sync_static:
     name: Sync static files to S3
