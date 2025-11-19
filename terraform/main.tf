@@ -17,6 +17,6 @@ provider "aws" {
 
 # For ACM cert (CloudFront requires us-east-1 certs)
 provider "aws" {
-  alias   = "use1"
-  region  = "us-east-1"
+  alias  = "use1"
+  region = "us-east-1"
 }
