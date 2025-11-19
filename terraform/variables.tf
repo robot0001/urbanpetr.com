@@ -25,5 +25,5 @@ variable "s3_bucket_name" {
 variable "tf_state_bucket_name" {
   type        = string
   description = "Name of the S3 bucket used for Terraform remote state"
-  default     = "tf-state"
+  default     = "urbanpetr-tf-state"
 }
