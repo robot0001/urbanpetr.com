@@ -1,0 +1,126 @@
+name: PR stage environment
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  S3_BUCKET_PREFIX: ${{ secrets.S3_BUCKET_PREFIX }}     # e.g. urbanpetr-website-stage-
+  DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}               # urbanpetr.com
+
+jobs:
+  stage_plan_apply:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    environment:
+      # This works with GitHub "environment protection rules"
+      name: stage-pr-${{ github.event.number }}
+      url: https://stage${{ github.event.number }}.${{ env.DOMAIN_NAME }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5.1.0
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+
+      - name: Terraform init
+        working-directory: terraform
+        run: terraform init -input=false
+
+      - name: Select/create workspace for this PR
+        working-directory: terraform
+        run: |
+          terraform workspace select stage-pr-${{ github.event.number }} \
+            || terraform workspace new stage-pr-${{ github.event.number }}
+
+      - name: Terraform plan (stage)
+        working-directory: terraform
+        run: |
+          terraform plan \
+            -var-file="env/prod.tfvars" \
+            -var="environment=stage" \
+            -var="stage_pr_number=${{ github.event.number }}" \
+            -var="stage_subdomain=stage${{ github.event.number }}" \
+            -var="s3_bucket_name=${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }}" \
+            -input=false -no-color
+
+      - name: Terraform apply (stage)
+        working-directory: terraform
+        run: |
+          terraform apply \
+            -var-file="env/prod.tfvars" \
+            -var="environment=stage" \
+            -var="stage_pr_number=${{ github.event.number }}" \
+            -var="stage_subdomain=stage${{ github.event.number }}" \
+            -var="s3_bucket_name=${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }}" \
+            -auto-approve -input=false
+
+      - name: Sync static to stage bucket
+        run: |
+          aws s3 sync src/ s3://${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }} \
+            --delete \
+            --cache-control "max-age=60"
+
+
+  stage_destroy:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5.1.0
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+
+      - name: Terraform init
+        working-directory: terraform
+        run: terraform init -input=false
+
+      - name: Select workspace
+        working-directory: terraform
+        run: terraform workspace select stage-pr-${{ github.event.number }}
+
+      - name: Terraform destroy (stage)
+        working-directory: terraform
+        run: |
+          terraform destroy \
+            -var-file="env/prod.tfvars" \
+            -var="environment=stage" \
+            -var="stage_pr_number=${{ github.event.number }}" \
+            -var="stage_subdomain=stage${{ github.event.number }}" \
+            -var="s3_bucket_name=${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }}" \
+            -auto-approve -input=false
+
+      - name: Delete workspace
+        working-directory: terraform
+        run: |
+          terraform workspace select default
+          terraform workspace delete -force stage-pr-${{ github.event.number }}

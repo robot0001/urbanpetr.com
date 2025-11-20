@@ -39,3 +39,21 @@ variable "enable_www" {
   type        = bool
   default     = true
 }
+
+variable "environment" {
+  description = "Deployment environment: prod or stage"
+  type        = string
+  default     = "prod"
+}
+
+variable "stage_subdomain" {
+  description = "Subdomain for stage env (e.g. stage10)"
+  type        = string
+  default     = ""
+}
+
+variable "stage_pr_number" {
+  description = "PR number for stage env"
+  type        = number
+  default     = 0
+}
