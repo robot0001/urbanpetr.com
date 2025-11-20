@@ -1,49 +1,35 @@
 locals {
-  # In prod: request certificate for apex + wildcard (*.domain)
-  # In stage: we will only look up the existing wildcard certificate.
-  cert_domains = [
-    var.domain_name,          # example.com
-    "*.${var.domain_name}",   # *.example.com
-  ]
+  cert_domains = var.enable_www ? [var.domain_name, "www.${var.domain_name}"] : [var.domain_name]
 }
 
-# Certificate is created only in the prod environment.
 resource "aws_acm_certificate" "site" {
-  provider = aws.use1
-  count    = var.environment == "prod" ? 1 : 0
-
+  provider          = aws.use1
   domain_name       = var.domain_name
   validation_method = "DNS"
 
-  subject_alternative_names = [
-    "*.${var.domain_name}",
-  ]
+  subject_alternative_names = var.enable_www ? ["www.${var.domain_name}"] : []
 
   lifecycle {
     create_before_destroy = true
   }
 
   tags = {
-    Project     = var.project_name
-    Environment = var.environment
+    Project = var.project_name
   }
 }
 
 locals {
-  # Validation options are only available when the certificate is created (prod).
-  cert_validation_options_by_domain = var.environment == "prod" ? {
-    for dvo in aws_acm_certificate.site[0].domain_validation_options :
+  cert_validation_options_by_domain = {
+    for dvo in aws_acm_certificate.site.domain_validation_options :
     dvo.domain_name => dvo
-  } : {}
+  }
 }
 
-# DNS validation records — only for prod.
+# Create DNS validation records in Route 53
 resource "aws_route53_record" "cert_validation" {
-  for_each = var.environment == "prod" ? {
-    for d in local.cert_domains : d => d
-  } : {}
+  for_each = { for d in local.cert_domains : d => d }
 
-  zone_id = local.primary_zone_id
+  zone_id = aws_route53_zone.primary.zone_id
   name    = local.cert_validation_options_by_domain[each.key].resource_record_name
   type    = local.cert_validation_options_by_domain[each.key].resource_record_type
   ttl     = 60
@@ -52,29 +38,10 @@ resource "aws_route53_record" "cert_validation" {
   ]
 }
 
-# Certificate validation — only in prod.
 resource "aws_acm_certificate_validation" "site" {
-  provider = aws.use1
-  count    = var.environment == "prod" ? 1 : 0
-
-  certificate_arn = aws_acm_certificate.site[0].arn
+  provider        = aws.use1
+  certificate_arn = aws_acm_certificate.site.arn
   validation_record_fqdns = [
     for r in aws_route53_record.cert_validation : r.fqdn
   ]
-}
-
-# In stage environment we look up an existing ISSUED certificate
-# for the apex domain. This will also match the cert that has
-# *.domain.com as a SAN once prod has created it.
-data "aws_acm_certificate" "site" {
-  provider = aws.use1
-
-  domain      = var.domain_name
-  statuses    = ["ISSUED"]
-  most_recent = true
-}
-
-# Unified reference for CloudFront and others to use the correct cert ARN.
-locals {
-  site_certificate_arn = var.environment == "prod" ? aws_acm_certificate_validation.site[0].certificate_arn : data.aws_acm_certificate.site.arn
 }
