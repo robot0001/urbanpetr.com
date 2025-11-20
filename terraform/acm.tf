@@ -27,7 +27,7 @@ resource "aws_acm_certificate" "site" {
   }
 }
 
-# Group validation options by record name (CNAME), dedupe them correctly
+# Group validation options by record name (CNAME), dedupe them correctly (prod only)
 locals {
   cert_validation_records = var.environment == "prod" ? {
     for name, dvos in {
@@ -42,7 +42,7 @@ locals {
   } : {}
 }
 
-# One Route53 record per unique validation CNAME (prod only).
+# One Route53 record per unique validation CNAME (prod only)
 resource "aws_route53_record" "cert_validation" {
   for_each = local.cert_validation_records
 
@@ -52,10 +52,11 @@ resource "aws_route53_record" "cert_validation" {
   ttl     = 60
   records = [each.value.value]
 
+  # If a record already exists, allow Terraform to overwrite it.
   allow_overwrite = true
 }
 
-# Final certificate validation resource (prod only).
+# Final certificate validation resource (prod only)
 resource "aws_acm_certificate_validation" "site" {
   provider        = aws.use1
   count           = var.environment == "prod" ? 1 : 0
@@ -65,17 +66,18 @@ resource "aws_acm_certificate_validation" "site" {
   ]
 }
 
-# In stage environment we look up the existing wildcard certificate.
+# In stage environment we look up the existing ISSUED certificate.
+# Use the apex domain; this cert also has *.domain.com as SAN.
 data "aws_acm_certificate" "existing" {
+  count = var.environment == "stage" ? 1 : 0
   provider = aws.use1
 
-  # Use wildcard domain so we always pick the cert that covers *.domain.com
-  domain      = "*.${var.domain_name}"
+  domain      = var.domain_name
   statuses    = ["ISSUED"]
   most_recent = true
 }
 
-# Unified certificate ARN for CloudFront/use elsewhere.
+# Unified certificate ARN for CloudFront and others.
 locals {
-  site_certificate_arn = var.environment == "prod" ? aws_acm_certificate_validation.site[0].certificate_arn : data.aws_acm_certificate.existing.arn
+  site_certificate_arn = var.environment == "prod" ? aws_acm_certificate_validation.site[0].certificate_arn : data.aws_acm_certificate.existing[0].arn
 }
