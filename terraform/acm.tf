@@ -3,9 +3,7 @@ locals {
   # - root domain
   # - optional www
   # - wildcard for all future subdomains (e.g. stage10.domain.com)
-  cert_domains = var.enable_www
-    ? [var.domain_name, "www.${var.domain_name}", "*.${var.domain_name}"]
-    : [var.domain_name, "*.${var.domain_name}"]
+  cert_domains = var.enable_www ? [var.domain_name, "www.${var.domain_name}", "*.${var.domain_name}"] : [var.domain_name, "*.${var.domain_name}"]
 }
 
 # Single ACM certificate in us-east-1 for CloudFront
@@ -17,9 +15,7 @@ resource "aws_acm_certificate" "site" {
   # SANs:
   # - if enable_www = true: www.domain.com + *.domain.com
   # - else: *.domain.com only
-  subject_alternative_names = var.enable_www
-    ? ["www.${var.domain_name}", "*.${var.domain_name}"]
-    : ["*.${var.domain_name}"]
+  subject_alternative_names = var.enable_www ? ["www.${var.domain_name}", "*.${var.domain_name}"] : ["*.${var.domain_name}"]
 
   lifecycle {
     create_before_destroy = true
