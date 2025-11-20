@@ -22,16 +22,23 @@ resource "aws_s3_bucket_policy" "site" {
 }
 
 locals {
-  cf_aliases = var.enable_www ? [var.domain_name, "www.${var.domain_name}"] : [var.domain_name]
+  # Prod aliases: root + optional www
+  prod_cf_aliases = var.enable_www ? [var.domain_name, "www.${var.domain_name}"] : [var.domain_name]
+
+  # Stage alias: stage{PR}.domain (only when stage_subdomain is set)
+  stage_cf_aliases = var.stage_subdomain != "" ? ["${var.stage_subdomain}.${var.domain_name}"] : []
 }
 
-
+# =========================
+# Prod CloudFront distribution
+# =========================
 resource "aws_cloudfront_distribution" "site" {
-  enabled             = true
-  is_ipv6_enabled     = true
+  count              = var.environment == "prod" ? 1 : 0
+  enabled            = true
+  is_ipv6_enabled    = true
   default_root_object = "index.html"
 
-  aliases = local.cf_aliases
+  aliases = local.prod_cf_aliases
 
   origin {
     domain_name = aws_s3_bucket.site.bucket_regional_domain_name
@@ -66,7 +73,61 @@ resource "aws_cloudfront_distribution" "site" {
   }
 
   viewer_certificate {
-    acm_certificate_arn      = aws_acm_certificate_validation.site.certificate_arn
+    acm_certificate_arn      = local.site_certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
+  }
+
+  tags = {
+    Project = var.project_name
+  }
+}
+
+# =========================
+# Stage CloudFront distribution (per PR)
+# =========================
+resource "aws_cloudfront_distribution" "stage" {
+  count               = var.environment == "stage" ? 1 : 0
+  enabled             = true
+  is_ipv6_enabled     = true
+  default_root_object = "index.html"
+
+  aliases = local.stage_cf_aliases
+
+  origin {
+    domain_name = aws_s3_bucket.site.bucket_regional_domain_name
+    origin_id   = "s3-stage-origin"
+
+    s3_origin_config {
+      origin_access_identity = aws_cloudfront_origin_access_identity.site.cloudfront_access_identity_path
+    }
+  }
+
+  default_cache_behavior {
+    target_origin_id       = "s3-stage-origin"
+    viewer_protocol_policy = "redirect-to-https"
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "none"
+      }
+    }
+  }
+
+  price_class = "PriceClass_100"
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
+  viewer_certificate {
+    acm_certificate_arn      = local.site_certificate_arn
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }
