@@ -26,24 +26,27 @@ resource "aws_acm_certificate" "site" {
   }
 }
 
+# Build a map of unique validation records keyed by record name
 locals {
-  cert_validation_options_by_domain = {
+  cert_validation_records = {
     for dvo in aws_acm_certificate.site.domain_validation_options :
-    dvo.domain_name => dvo
+    dvo.resource_record_name => {
+      name  = dvo.resource_record_name
+      type  = dvo.resource_record_type
+      value = dvo.resource_record_value
+    }
   }
 }
 
-# DNS validation records for all domains covered by the cert
+# One Route53 record per unique validation CNAME
 resource "aws_route53_record" "cert_validation" {
-  for_each = { for d in local.cert_domains : d => d }
+  for_each = local.cert_validation_records
 
   zone_id = aws_route53_zone.primary.zone_id
-  name    = local.cert_validation_options_by_domain[each.key].resource_record_name
-  type    = local.cert_validation_options_by_domain[each.key].resource_record_type
+  name    = each.value.name
+  type    = each.value.type
   ttl     = 60
-  records = [
-    local.cert_validation_options_by_domain[each.key].resource_record_value
-  ]
+  records = [each.value.value]
 }
 
 # Final certificate validation resource
