@@ -1,6 +1,10 @@
 resource "aws_s3_bucket" "site" {
   bucket = var.s3_bucket_name
 
+  # For stage envs, allow Terraform to delete non-empty buckets.
+  # For prod, keep the safer default (must be empty before destroy).
+  force_destroy = var.environment == "stage" ? true : false
+
   tags = {
     Project     = var.project_name
     Environment = var.environment
