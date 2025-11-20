@@ -1,13 +1,21 @@
 locals {
-  cert_domains = var.enable_www ? [var.domain_name, "www.${var.domain_name}"] : [var.domain_name]
+  # Domains we want covered by the certificate:
+  # - root domain
+  # - optional www
+  # - wildcard for all future subdomains (e.g. stage10.domain.com)
+  cert_domains = var.enable_www ? [var.domain_name, "www.${var.domain_name}", "*.${var.domain_name}"] : [var.domain_name, "*.${var.domain_name}"]
 }
 
+# Single ACM certificate in us-east-1 for CloudFront
 resource "aws_acm_certificate" "site" {
   provider          = aws.use1
   domain_name       = var.domain_name
   validation_method = "DNS"
 
-  subject_alternative_names = var.enable_www ? ["www.${var.domain_name}"] : []
+  # SANs:
+  # - if enable_www = true: www.domain.com + *.domain.com
+  # - else: *.domain.com only
+  subject_alternative_names = var.enable_www ? ["www.${var.domain_name}", "*.${var.domain_name}"] : ["*.${var.domain_name}"]
 
   lifecycle {
     create_before_destroy = true
@@ -25,7 +33,7 @@ locals {
   }
 }
 
-# Create DNS validation records in Route 53
+# DNS validation records for all domains covered by the cert
 resource "aws_route53_record" "cert_validation" {
   for_each = { for d in local.cert_domains : d => d }
 
@@ -38,6 +46,7 @@ resource "aws_route53_record" "cert_validation" {
   ]
 }
 
+# Final certificate validation resource
 resource "aws_acm_certificate_validation" "site" {
   provider        = aws.use1
   certificate_arn = aws_acm_certificate.site.arn
