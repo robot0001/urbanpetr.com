@@ -3,7 +3,9 @@ locals {
   # - root domain
   # - optional www
   # - wildcard for all future subdomains (e.g. stage10.domain.com)
-  cert_domains = var.enable_www ? [var.domain_name, "www.${var.domain_name}", "*.${var.domain_name}"] : [var.domain_name, "*.${var.domain_name}"]
+  cert_domains = var.enable_www
+    ? [var.domain_name, "www.${var.domain_name}", "*.${var.domain_name}"]
+    : [var.domain_name, "*.${var.domain_name}"]
 }
 
 # Single ACM certificate in us-east-1 for CloudFront
@@ -15,7 +17,9 @@ resource "aws_acm_certificate" "site" {
   # SANs:
   # - if enable_www = true: www.domain.com + *.domain.com
   # - else: *.domain.com only
-  subject_alternative_names = var.enable_www ? ["www.${var.domain_name}", "*.${var.domain_name}"] : ["*.${var.domain_name}"]
+  subject_alternative_names = var.enable_www
+    ? ["www.${var.domain_name}", "*.${var.domain_name}"]
+    : ["*.${var.domain_name}"]
 
   lifecycle {
     create_before_destroy = true
@@ -26,14 +30,17 @@ resource "aws_acm_certificate" "site" {
   }
 }
 
-# Build a map of unique validation records keyed by record name
+# Group validation options by record name (CNAME), dedupe them correctly
 locals {
   cert_validation_records = {
-    for dvo in aws_acm_certificate.site.domain_validation_options :
-    dvo.resource_record_name => {
-      name  = dvo.resource_record_name
-      type  = dvo.resource_record_type
-      value = dvo.resource_record_value
+    for name, dvos in {
+      for dvo in aws_acm_certificate.site.domain_validation_options :
+      dvo.resource_record_name => dvo...
+    } :
+    name => {
+      name  = name
+      type  = dvos[0].resource_record_type
+      value = dvos[0].resource_record_value
     }
   }
 }
