@@ -17,9 +17,7 @@ resource "aws_acm_certificate" "site" {
   # SANs:
   # - if enable_www = true: www.domain.com + *.domain.com
   # - else: *.domain.com only
-  subject_alternative_names = var.enable_www
-    ? ["www.${var.domain_name}", "*.${var.domain_name}"]
-    : ["*.${var.domain_name}"]
+  subject_alternative_names = var.enable_www ? ["www.${var.domain_name}", "*.${var.domain_name}"] : ["*.${var.domain_name}"]
 
   lifecycle {
     create_before_destroy = true
