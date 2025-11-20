@@ -1,4 +1,4 @@
-name: PR stage environment
+name: PR Stage Env Deployment
 
 on:
   pull_request:
