@@ -3,9 +3,7 @@ locals {
   # - root domain
   # - optional www
   # - wildcard for all future subdomains (e.g. stage10.domain.com)
-  cert_domains = var.enable_www
-    ? [var.domain_name, "www.${var.domain_name}", "*.${var.domain_name}"]
-    : [var.domain_name, "*.${var.domain_name}"]
+  cert_domains = var.enable_www ? [var.domain_name, "www.${var.domain_name}", "*.${var.domain_name}"] : [var.domain_name, "*.${var.domain_name}"]
 }
 
 # Single ACM certificate in us-east-1 for CloudFront
