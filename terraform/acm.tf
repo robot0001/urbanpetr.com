@@ -63,16 +63,18 @@ resource "aws_acm_certificate_validation" "site" {
   ]
 }
 
-# In stage environment we look up the already issued wildcard certificate.
+# In stage environment we look up an existing ISSUED certificate
+# for the apex domain. This will also match the cert that has
+# *.domain.com as a SAN once prod has created it.
 data "aws_acm_certificate" "site" {
   provider = aws.use1
 
-  domain      = "*.${var.domain_name}"
+  domain      = var.domain_name
   statuses    = ["ISSUED"]
   most_recent = true
 }
 
-# Unified reference for CloudFront or other resources to use the correct cert ARN.
+# Unified reference for CloudFront and others to use the correct cert ARN.
 locals {
   site_certificate_arn = var.environment == "prod" ? aws_acm_certificate_validation.site[0].certificate_arn : data.aws_acm_certificate.site.arn
 }
