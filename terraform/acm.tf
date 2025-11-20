@@ -50,6 +50,10 @@ resource "aws_route53_record" "cert_validation" {
   type    = each.value.type
   ttl     = 60
   records = [each.value.value]
+
+  # Important: if a record with this name/type already exists in Route53,
+  # allow Terraform to overwrite it instead of failing with "already exists".
+  allow_overwrite = true
 }
 
 # Final certificate validation resource
