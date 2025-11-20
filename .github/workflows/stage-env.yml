@@ -1,8 +1,8 @@
-name: PR stage environment
+name: PR Stage Env Deployment
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, closed]
+    types: [opened, synchronize, reopened, closed, labeled, unlabeled]
 
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
@@ -11,7 +11,9 @@ env:
 
 jobs:
   stage_plan_apply:
-    if: github.event.action != 'closed'
+    if: >
+      github.event.action != 'closed' &&
+      contains(github.event.pull_request.labels.*.name, 'stage')
     runs-on: ubuntu-latest
 
     permissions:
@@ -78,7 +80,9 @@ jobs:
 
 
   stage_destroy:
-    if: github.event.action == 'closed'
+    if: >
+      github.event.action == 'closed' &&
+      contains(github.event.pull_request.labels.*.name, 'stage')
     runs-on: ubuntu-latest
 
     permissions:
