@@ -3,7 +3,6 @@ resource "aws_s3_bucket" "site" {
 
   tags = {
     Project = var.project_name
-    Environment = var.environment
   }
 }
 

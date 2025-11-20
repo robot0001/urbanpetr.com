@@ -1,8 +1,6 @@
 # CNAME: mail.urbanpetr.com -> ghs.google.com
 resource "aws_route53_record" "mail_cname" {
-  count = var.environment == "prod" ? 1 : 0
-
-  zone_id = local.primary_zone_id
+  zone_id = aws_route53_zone.primary.zone_id
   name    = "mail.${var.domain_name}" # mail.urbanpetr.com
   type    = "CNAME"
   ttl     = 1800
@@ -12,9 +10,7 @@ resource "aws_route53_record" "mail_cname" {
 
 # MX records for Google Apps / Workspace
 resource "aws_route53_record" "mx_google" {
-  count = var.environment == "prod" ? 1 : 0
-
-  zone_id = local.primary_zone_id
+  zone_id = aws_route53_zone.primary.zone_id
   name    = var.domain_name # urbanpetr.com
   type    = "MX"
   ttl     = 1800
