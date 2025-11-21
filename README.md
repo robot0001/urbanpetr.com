@@ -13,3 +13,7 @@
 
 ## Live Deployment
 - when PR is merged then website is deployed live / updated live via github actions
+
+## PR Based Stage Deployment
+- PR with tag `stage` will be deployed on `https://stage{github_pr_number}.urbanpetr.com` (ie. `stage10.urbanpetr.com`)
+- when label is removed or PR is closed then the staging environment is destroyed
