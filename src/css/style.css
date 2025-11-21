@@ -23,7 +23,7 @@ a, a:active, a:visited {
 
 .page {
     width: 50%;
-    min-width: 640px;
+    min-width: 320px;
     margin: 0 auto;
 }
 
