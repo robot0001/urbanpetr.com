@@ -18,15 +18,19 @@ a, a:active, a:visited {
     height: calc(100% + env(safe-area-inset-top) + env(safe-area-inset-bottom));
     background: /* your color */;
     z-index: -1;
+
+}
+
+.page {
+    width: 50%;
+    min-width: 640px;
+    margin: 0 auto;
 }
 
 section {
     box-sizing: border-box;
-    width: 50%;
-    min-width: 640px;
-    margin: 0 auto;
     padding: 1em;
-    margin-top: 1em;
+    margin: 1em;
 
     /* From https://css.glass */
     background: rgba(255, 255, 255, 0.14);
