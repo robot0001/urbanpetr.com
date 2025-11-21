@@ -11,6 +11,8 @@ env:
 
 jobs:
   stage_plan_apply:
+    # Run when PR is not closed AND currently has the 'stage' label.
+    # This covers: opened, reopened, synchronize, labeled
     if: >
       github.event.action != 'closed' &&
       contains(github.event.pull_request.labels.*.name, 'stage')
@@ -21,7 +23,7 @@ jobs:
       contents: read
 
     environment:
-      # This works with GitHub "environment protection rules"
+      # Works with GitHub "environment protection rules"
       name: stage-pr-${{ github.event.number }}
       url: https://stage${{ github.event.number }}.${{ env.DOMAIN_NAME }}
 
@@ -80,9 +82,12 @@ jobs:
 
 
   stage_destroy:
+    # Destroy when:
+    # - PR is closed (merged or not), OR
+    # - The 'stage' label is removed from the PR
     if: >
-      github.event.action == 'closed' &&
-      contains(github.event.pull_request.labels.*.name, 'stage')
+      github.event.action == 'closed' ||
+      (github.event.action == 'unlabeled' && github.event.label.name == 'stage')
     runs-on: ubuntu-latest
 
     permissions:
@@ -108,11 +113,18 @@ jobs:
         working-directory: terraform
         run: terraform init -input=false
 
-      - name: Select workspace
+      - name: Select workspace if it exists
+        id: select_ws
         working-directory: terraform
-        run: terraform workspace select stage-pr-${{ github.event.number }}
+        run: |
+          if terraform workspace list | grep -q "stage-pr-${{ github.event.number }}"; then
+            terraform workspace select stage-pr-${{ github.event.number }}
+          else
+            echo "no_workspace=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Terraform destroy (stage)
+        if: steps.select_ws.outputs.no_workspace != 'true'
         working-directory: terraform
         run: |
           terraform destroy \
@@ -124,6 +136,7 @@ jobs:
             -auto-approve -input=false
 
       - name: Delete workspace
+        if: steps.select_ws.outputs.no_workspace != 'true'
         working-directory: terraform
         run: |
           terraform workspace select default

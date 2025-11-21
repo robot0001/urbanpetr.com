@@ -1,0 +1,42 @@
+body {
+    margin: auto;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #fff;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+a, a:active, a:visited {
+    color: #d1dcff;
+}
+
+.background-canvas {
+    position: fixed;
+    top: calc(-1 * env(safe-area-inset-top));
+    left: 0;
+    width: 100%;
+    height: calc(100% + env(safe-area-inset-top) + env(safe-area-inset-bottom));
+    background: #270c6f;
+    z-index: -1;
+
+}
+
+.page {
+    width: 50%;
+    min-width: 320px;
+    margin: 0 auto;
+}
+
+section {
+    box-sizing: border-box;
+    padding: 1em;
+    margin: 1em;
+
+    /* From https://css.glass */
+    background: rgba(255, 255, 255, 0.14);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5.3px);
+    -webkit-backdrop-filter: blur(5.3px);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+}
