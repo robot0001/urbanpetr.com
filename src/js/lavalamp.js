@@ -40,7 +40,7 @@ window.addEventListener("load", () => {
 			const radius = baseRadius;
 			const x = Math.random() * width;
 			const y = Math.random() * height;
-			const speedMultiplier = Math.random() * 0.3 + 0.3;
+			const speedMultiplier = Math.random() * 0.5 + 0.4;
 			const vx = (Math.random() - 0.5) * speedMultiplier;
 			const vy = (Math.random() - 0.5) * speedMultiplier;
 			circles.push({
