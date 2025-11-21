@@ -16,7 +16,7 @@ a, a:active, a:visited {
     left: 0;
     width: 100%;
     height: calc(100% + env(safe-area-inset-top) + env(safe-area-inset-bottom));
-    background: /* your color */;
+    background: #270c6f;
     z-index: -1;
 
 }
