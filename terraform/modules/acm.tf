@@ -14,10 +14,10 @@ module "acm_certificate" {
 
   # Logic: Only create in Prod. In Stage, we will lookup.
   create_cert = var.environment == "prod"
-  
+
   domain_name               = var.domain_name
   subject_alternative_names = local.cert_sans
-  
+
   # We use the zone ID from locals.tf (which comes from Foundation)
   zone_id = local.primary_zone_id
 

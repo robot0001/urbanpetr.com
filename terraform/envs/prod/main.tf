@@ -1,12 +1,12 @@
 terraform {
   required_version = ">= 1.5.0"
-  
+
   # Backend config je v backend.tf
 }
 
 # 1. Main Provider (Frankfurt)
 provider "aws" {
-  region  = "eu-central-1"
+  region = "eu-central-1"
 }
 
 # 2. Special Provider for US East 1 - for certificates
