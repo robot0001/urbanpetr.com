@@ -5,7 +5,7 @@ locals {
 }
 
 module "acm_certificate" {
-  source = "github.com/robot0001/urbanpetr-foundation//modules/acm_certificate?ref=v1.0.0"
+  source = "github.com/robot0001/urbanpetr-foundation//modules/acm_certificate?ref=v1.0.1"
 
   # MAGICAL LINE: This tells the module to use the us-east-1 provider
   providers = {
