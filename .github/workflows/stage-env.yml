@@ -6,12 +6,13 @@ on:
 
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
-  S3_BUCKET_PREFIX: ${{ secrets.S3_BUCKET_PREFIX }}
-  DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+  S3_BUCKET_PREFIX: ${{ secrets.S3_BUCKET_PREFIX }} # e.g. urbanpetr-website-stage-
+  DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}           # urbanpetr.com
 
 jobs:
   stage_plan_apply:
-    # Spustit pokud NENI zavřeno A ZAROVEN má label 'stage'
+    # Run when PR is not closed AND currently has the 'stage' label.
+    # This covers: opened, reopened, synchronize, labeled
     if: >
       github.event.action != 'closed' &&
       contains(github.event.pull_request.labels.*.name, 'stage')
@@ -22,6 +23,7 @@ jobs:
       contents: read
 
     environment:
+      # Works with GitHub "environment protection rules"
       name: stage-pr-${{ github.event.number }}
       url: https://stage${{ github.event.number }}.${{ env.DOMAIN_NAME }}
 
@@ -29,16 +31,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Přidáno: Nutné pro stažení privátních modulů (stejné jako v Prod)
+      # Required to download private modules
       - name: Configure Git Credentials
         run: |
           git config --global url."https://oauth2:${{ secrets.GLOBAL_MODULES_PAT }}@github.com".insteadOf "https://github.com"
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4 # Updatováno na v4 pro konzistenci
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          # Zde pozor: V Prod používáte keys, tady role. Pokud role funguje, nechte ji.
-          # Pokud ne, zvažte sjednocení s Prod (keys).
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }} 
           aws-region: ${{ env.AWS_REGION }}
 
@@ -47,19 +47,16 @@ jobs:
         with:
           terraform_version: 1.9.8
 
-      # ZMĚNA: working-directory nastaveno tam, kde jsou .tf soubory
       - name: Terraform init
         working-directory: terraform/envs/prod
         run: terraform init -input=false
 
-      # ZMĚNA: working-directory
       - name: Select/create workspace for this PR
         working-directory: terraform/envs/prod
         run: |
           terraform workspace select stage-pr-${{ github.event.number }} \
             || terraform workspace new stage-pr-${{ github.event.number }}
 
-      # ZMĚNA: working-directory a cesta k var-file
       - name: Terraform plan (stage)
         working-directory: terraform/envs/prod
         run: |
@@ -71,7 +68,6 @@ jobs:
             -var="s3_bucket_name=${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }}" \
             -input=false -no-color
 
-      # ZMĚNA: working-directory a cesta k var-file
       - name: Terraform apply (stage)
         working-directory: terraform/envs/prod
         run: |
@@ -103,7 +99,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Přidáno: I pro destroy je potřeba init, a pro init je potřeba git auth
       - name: Configure Git Credentials
         run: |
           git config --global url."https://oauth2:${{ secrets.GLOBAL_MODULES_PAT }}@github.com".insteadOf "https://github.com"
@@ -119,12 +114,10 @@ jobs:
         with:
           terraform_version: 1.9.8
 
-      # ZMĚNA: working-directory
       - name: Terraform init
         working-directory: terraform/envs/prod
         run: terraform init -input=false
 
-      # ZMĚNA: working-directory
       - name: Select workspace if it exists
         id: select_ws
         working-directory: terraform/envs/prod
@@ -135,7 +128,6 @@ jobs:
             echo "no_workspace=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # ZMĚNA: working-directory a cesta k var-file
       - name: Terraform destroy (stage)
         if: steps.select_ws.outputs.no_workspace != 'true'
         working-directory: terraform/envs/prod
@@ -148,7 +140,6 @@ jobs:
             -var="s3_bucket_name=${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }}" \
             -auto-approve -input=false
 
-      # ZMĚNA: working-directory
       - name: Delete workspace
         if: steps.select_ws.outputs.no_workspace != 'true'
         working-directory: terraform/envs/prod

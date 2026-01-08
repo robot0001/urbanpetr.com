@@ -49,6 +49,6 @@ variable "stage_subdomain" {
 variable "stage_pr_number" {
   description = "The Pull Request number"
   # ZMĚNA ZDE: number -> string
-  type        = string
-  default     = "" 
+  type    = string
+  default = ""
 }
