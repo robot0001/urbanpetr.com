@@ -27,3 +27,21 @@ variable "enable_www" {
   description = "Enable www redirection"
   type        = bool
 }
+
+variable "environment" {
+  description = "Target environment (prod or stage)"
+  type        = string
+  default     = "prod"
+}
+
+variable "stage_pr_number" {
+  description = "The Pull Request number (only for stage)"
+  type        = string
+  default     = ""
+}
+
+variable "stage_subdomain" {
+  description = "The subdomain for the stage env (e.g. stage123)"
+  type        = string
+  default     = ""
+}
