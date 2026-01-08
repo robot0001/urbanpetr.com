@@ -12,7 +12,7 @@ locals {
 
 # 2. Call the new Module
 module "cloudfront" {
-  source = "github.com/robot0001/urbanpetr-foundation//modules/cloudfront_website?ref=v1.0.1"
+  source = "github.com/robot0001/urbanpetr-foundation//modules/cloudfront_website?ref=v1.0.2"
 
   project_name = var.project_name
   environment  = var.environment
@@ -20,7 +20,7 @@ module "cloudfront" {
   # Pass the S3 data (Assumes module.site exists from previous steps)
   # IMPORTANT: Check if your S3 module outputs 'bucket_regional_domain_name'. 
   # If not, use 'bucket_domain_name' but regional is better.
-  bucket_domain_name = module.site.bucket_domain_name
+  bucket_domain_name = module.site.bucket_regional_domain_name
 
   # Pass the calculated aliases
   aliases = local.final_aliases
