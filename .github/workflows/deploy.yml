@@ -38,19 +38,19 @@ jobs:
           terraform_version: 1.9.8
 
       - name: Terraform init
-        working-directory: terraform
+        working-directory: terraform/envs/prod
         run: terraform init -input=false
 
       - name: Terraform fmt
-        working-directory: terraform
+        working-directory: terraform/envs/prod
         run: terraform fmt
 
       - name: Terraform validate
-        working-directory: terraform
+        working-directory: terraform/envs/prod
         run: terraform validate
 
       - name: Terraform plan (PR)
-        working-directory: terraform
+        working-directory: terraform/envs/prod
         run: terraform plan -var-file="envs/prod/prod.tfvars" -input=false -no-color
 
 
