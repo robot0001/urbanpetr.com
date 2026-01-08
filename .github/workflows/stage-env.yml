@@ -6,8 +6,8 @@ on:
 
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
-  S3_BUCKET_PREFIX: ${{ secrets.S3_BUCKET_PREFIX }}
-  DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}
+  S3_BUCKET_PREFIX: ${{ secrets.S3_BUCKET_PREFIX }} # e.g. urbanpetr-website-stage-
+  DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}           # urbanpetr.com
 
 jobs:
   stage_plan_apply:
@@ -29,16 +29,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Přidáno: Nutné pro stažení privátních modulů (stejné jako v Prod)
+      # Required to download private modules
       - name: Configure Git Credentials
         run: |
           git config --global url."https://oauth2:${{ secrets.GLOBAL_MODULES_PAT }}@github.com".insteadOf "https://github.com"
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4 # Updatováno na v4 pro konzistenci
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          # Zde pozor: V Prod používáte keys, tady role. Pokud role funguje, nechte ji.
-          # Pokud ne, zvažte sjednocení s Prod (keys).
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }} 
           aws-region: ${{ env.AWS_REGION }}
 
@@ -102,8 +100,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      # Přidáno: I pro destroy je potřeba init, a pro init je potřeba git auth
       - name: Configure Git Credentials
         run: |
           git config --global url."https://oauth2:${{ secrets.GLOBAL_MODULES_PAT }}@github.com".insteadOf "https://github.com"
