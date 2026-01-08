@@ -51,7 +51,7 @@ jobs:
 
       - name: Terraform plan (PR)
         working-directory: terraform
-        run: terraform plan -var-file="env/prod.tfvars" -input=false -no-color
+        run: terraform plan -var-file="envs/prod/prod.tfvars" -input=false -no-color
 
 
   terraform_apply_main:
@@ -94,7 +94,7 @@ jobs:
         working-directory: terraform
         env:
           TF_VAR_s3_bucket_name: ${{ env.S3_BUCKET }}
-        run: terraform apply -var-file="env/prod.tfvars" -auto-approve -input=false
+        run: terraform apply -var-file="envs/prod/prod.tfvars" -auto-approve -input=false
 
   sync_static:
     name: Sync static files to S3
