@@ -8,8 +8,8 @@ resource "aws_route53_record" "root_a" {
 
   alias {
     # Assuming 'aws_cloudfront_distribution.site' is defined in your cloudfront.tf
-    name                   = aws_cloudfront_distribution.site[0].domain_name
-    zone_id                = aws_cloudfront_distribution.site[0].hosted_zone_id
+    name                   = module.cloudfront.domain_name
+    zone_id                = module.cloudfront.hosted_zone_id
     evaluate_target_health = false
   }
 }
@@ -23,8 +23,8 @@ resource "aws_route53_record" "www_a" {
   type    = "A"
 
   alias {
-    name                   = aws_cloudfront_distribution.site[0].domain_name
-    zone_id                = aws_cloudfront_distribution.site[0].hosted_zone_id
+    name                   = module.cloudfront.domain_name
+    zone_id                = module.cloudfront.hosted_zone_id
     evaluate_target_health = false
   }
 }
@@ -39,8 +39,8 @@ resource "aws_route53_record" "stage" {
 
   alias {
     # Ensure 'aws_cloudfront_distribution.stage' exists in your configuration
-    name                   = aws_cloudfront_distribution.stage[0].domain_name
-    zone_id                = aws_cloudfront_distribution.stage[0].hosted_zone_id
+    name                   = module.cloudfront.domain_name
+    zone_id                = module.cloudfront.hosted_zone_id
     evaluate_target_health = false
   }
 }
