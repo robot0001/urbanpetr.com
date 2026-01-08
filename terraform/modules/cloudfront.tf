@@ -12,7 +12,7 @@ locals {
 
 # 2. Call the new Module
 module "cloudfront" {
-  source = "github.com/robot0001/urbanpetr-foundation//modules/cloudfront_website?ref=v1.0.1"
+  source = "github.com/robot0001/urbanpetr-foundation//modules/cloudfront_website?ref=v1.0.2"
 
   project_name = var.project_name
   environment  = var.environment
