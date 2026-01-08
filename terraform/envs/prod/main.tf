@@ -25,6 +25,9 @@ module "app" {
   }
 
   # Pass vars from prod.tfvars
+  environment     = var.environment
+  stage_pr_number = var.stage_pr_number
+  stage_subdomain = var.stage_subdomain
   project_name   = var.project_name
   aws_region     = var.aws_region
   domain_name    = var.domain_name

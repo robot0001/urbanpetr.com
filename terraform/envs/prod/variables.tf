@@ -31,17 +31,17 @@ variable "enable_www" {
 variable "environment" {
   description = "Target environment (prod or stage)"
   type        = string
-  default     = "prod"  # DŮLEŽITÉ: Default musí být prod, aby se nerozbil hlavní deploy
+  default     = "prod"
 }
 
 variable "stage_pr_number" {
   description = "The Pull Request number (only for stage)"
   type        = string
-  default     = ""      # Prod to nepotřebuje, takže default je prázdný
+  default     = ""
 }
 
 variable "stage_subdomain" {
   description = "The subdomain for the stage env (e.g. stage123)"
   type        = string
-  default     = ""      # Prod to nepotřebuje
+  default     = ""
 }
