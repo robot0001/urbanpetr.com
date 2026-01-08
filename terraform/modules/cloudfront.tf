@@ -12,7 +12,7 @@ locals {
 
 # 2. Call the new Module
 module "cloudfront" {
-  source = "github.com/your-org/terraform-modules//modules/cloudfront_website?ref=v1.2.0"
+  source = "github.com/robot0001/urbanpetr-foundation//modules/cloudfront_website?ref=v1.0.0"
 
   project_name = var.project_name
   environment  = var.environment
