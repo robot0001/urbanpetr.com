@@ -11,8 +11,8 @@ provider "aws" {
 
 # 2. Special Provider for US East 1 - for certificates
 provider "aws" {
-  alias   = "use1"
-  region  = "us-east-1"
+  alias  = "use1"
+  region = "us-east-1"
 }
 
 # 3. App modules location
