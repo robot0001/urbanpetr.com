@@ -1,10 +1,18 @@
 <template lang="pug">
-div(class="w-1/2 min-w-[320px] mx-auto")
-  GlassBox
-    h1 Welcome
-  GlassBox
-    h2 Things
+div(class="w-1/2 min-w-[320px] mx-auto py-8")
+  PrimeCard
+    template(#header)
+      h1(class="m-0") Welcome
+  PrimeCard
+    template(#header)
+      h2(class="m-0") Things
     ul
       li
-        a(href="https://json.city" target="_top" class="text-indigo-200 visited:text-indigo-200 active:text-indigo-200") json.city
+        PrimeButton(
+          label="json.city"
+          link
+          :as="'a'"
+          href="https://json.city"
+          target="_blank"
+        )
 </template>
