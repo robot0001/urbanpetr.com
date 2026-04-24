@@ -11,5 +11,12 @@
     "@nuxtjs/tailwindcss": "^6.12.2",
     "nuxt": "^3.16.0",
     "pug": "^3.0.3"
+  },
+  "dependencies": {
+    "@primeuix/themes": "^2.0.3",
+    "@primevue/nuxt-module": "^4.5.5",
+    "@primevue/themes": "^4.5.4",
+    "primeicons": "^7.0.0",
+    "primevue": "^4.5.5"
   }
 }

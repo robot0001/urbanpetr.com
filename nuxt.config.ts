@@ -1,6 +1,14 @@
 export default defineNuxtConfig({
-  modules: ['@nuxtjs/tailwindcss'],
-  css: ['~/assets/css/global.css'],
+  modules: ['@nuxtjs/tailwindcss', '@primevue/nuxt-module'],
+  css: ['~/assets/css/global.css', 'primeicons/primeicons.css'],
+  primevue: {
+    options: {
+      ripple: true,
+      inputStyle: 'outlined',
+      unstyled: false,
+      theme: 'aura-dark-blue'
+    }
+  },
   app: {
     head: {
       charset: 'utf-8',
