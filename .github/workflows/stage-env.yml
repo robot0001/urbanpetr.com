@@ -81,9 +81,21 @@ jobs:
             -var="s3_bucket_name=${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }}" \
             -auto-approve -input=false
 
-      - name: Sync static to stage bucket
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate static site
+        run: npm run generate
+
+      - name: Sync to stage bucket
         run: |
-          aws s3 sync src/ s3://${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }} \
+          aws s3 sync .output/public/ s3://${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }} \
             --delete \
             --cache-control "max-age=60"
 
