@@ -8,7 +8,7 @@ div(class="flex flex-col lg:flex-row gap-6")
     Card
       template(#title) What I'm Into Right Now
       template(#content)
-        p Toying around with AI—exploring various tools, seeing how they fit into development workflows. Building things faster, thinking differently. Later I'll document actual projects here.
+        p Toying around with AI ... exploring various tools, seeing how they fit into development workflows. Building things faster, thinking differently. Later I'll document actual projects here.
         p
           strong openclaw
           | &nbsp;is taking up most of my bandwidth. It's the kind of project that keeps you up at night in the best way possible.
