@@ -1,4 +1,20 @@
 import Aura from '@primeuix/themes/aura'
+import { definePreset } from '@primeuix/themes'
+
+const Theme = definePreset(Aura, {
+  components: {
+    panel: {
+      header: {
+        color: 'var(--primary-200)'
+      }
+    },
+    fieldset: {
+      legend: {
+        color: 'var(--primary-200)'
+      }
+    }
+  }
+})
 
 export default defineNuxtConfig({
   modules: ['@nuxtjs/tailwindcss', '@primevue/nuxt-module'],
@@ -7,7 +23,7 @@ export default defineNuxtConfig({
     options: {
       ripple: true,
       theme: {
-        preset: Aura,
+        preset: Theme,
         options: {
           darkModeSelector: '.dark',
           primary: {

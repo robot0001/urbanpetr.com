@@ -13,12 +13,18 @@
   --primary-950: #431407;
 }
 
+h1, h2, h3, h4, h5, h6,
+.p-card-title,
+.p-card-subtitle {
+  color: var(--primary-200);
+}
+
 a {
-  color: #f97316;
+  color: var(--primary-500);
 }
 
 a:visited {
-  color: #ea580c;
+  color: var(--primary-600);
 }
 
 body {
