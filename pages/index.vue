@@ -1,14 +1,14 @@
 <template lang="pug">
 div(class="w-1/2 min-w-[320px] mx-auto py-8")
-  PrimeCard
+  Card
     template(#header)
       h1(class="m-0") Welcome
-  PrimeCard
+  Card
     template(#header)
       h2(class="m-0") Things
     ul
       li
-        PrimeButton(
+        Button(
           label="json.city"
           link
           :as="'a'"
