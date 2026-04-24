@@ -1,0 +1,6 @@
+body {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #0d0f2b, #050710);
+  font-family: ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+  color: white;
+}

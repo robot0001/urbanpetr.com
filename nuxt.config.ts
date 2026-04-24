@@ -1,5 +1,6 @@
 export default defineNuxtConfig({
   modules: ['@nuxtjs/tailwindcss'],
+  css: ['~/assets/css/global.css'],
   app: {
     head: {
       charset: 'utf-8',
