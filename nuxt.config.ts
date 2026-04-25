@@ -18,7 +18,7 @@ const Theme = definePreset(Aura, {
 
 export default defineNuxtConfig({
   modules: ['@nuxtjs/tailwindcss', '@primevue/nuxt-module'],
-  css: ['~/assets/css/global.css', 'primeicons/primeicons.css'],
+  css: ['~/assets/css/global.css', '~/assets/css/background.css', 'primeicons/primeicons.css'],
   primevue: {
     options: {
       ripple: true,
