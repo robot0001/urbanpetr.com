@@ -12,7 +12,7 @@ locals {
 
 # 2. Call the new Module
 module "cloudfront" {
-  source = "github.com/robot0001/urbanpetr-foundation//modules/cloudfront_website?ref=feat/unify-tagging"
+  source = "github.com/robot0001/urbanpetr-foundation//modules/cloudfront_website?ref=feat%2Funify-tagging"
 
   project_name = var.project_name
   environment  = var.environment
