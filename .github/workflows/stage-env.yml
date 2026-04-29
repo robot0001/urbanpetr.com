@@ -64,7 +64,6 @@ jobs:
           terraform plan \
             -var-file="prod.tfvars" \
             -var="environment=stage" \
-            -var="stage_pr_number=${{ github.event.number }}" \
             -var="stage_subdomain=stage${{ github.event.number }}" \
             -var="s3_bucket_name=${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }}" \
             -input=false -no-color
@@ -76,7 +75,6 @@ jobs:
           terraform apply \
             -var-file="prod.tfvars" \
             -var="environment=stage" \
-            -var="stage_pr_number=${{ github.event.number }}" \
             -var="stage_subdomain=stage${{ github.event.number }}" \
             -var="s3_bucket_name=${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }}" \
             -auto-approve -input=false
@@ -151,7 +149,6 @@ jobs:
           terraform destroy \
             -var-file="prod.tfvars" \
             -var="environment=stage" \
-            -var="stage_pr_number=${{ github.event.number }}" \
             -var="stage_subdomain=stage${{ github.event.number }}" \
             -var="s3_bucket_name=${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }}" \
             -auto-approve -input=false
