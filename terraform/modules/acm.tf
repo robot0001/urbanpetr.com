@@ -5,7 +5,7 @@ locals {
 }
 
 module "acm_certificate" {
-  source = "github.com/robot0001/urbanpetr-foundation//modules/acm_certificate?ref=v1.0.2"
+  source = "github.com/robot0001/urbanpetr-foundation//modules/acm_certificate?ref=v1.1.0"
 
   # MAGICAL LINE: This tells the module to use the us-east-1 provider
   providers = {
@@ -21,9 +21,7 @@ module "acm_certificate" {
   # We use the zone ID from locals.tf (which comes from Foundation)
   zone_id = local.primary_zone_id
 
-  tags = {
-    Project = var.project_name
-  }
+  custom_tags = local.common_tags
 }
 
 # Define the local variable that cloudfront.tf is expecting
