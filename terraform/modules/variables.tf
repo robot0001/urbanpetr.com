@@ -4,12 +4,6 @@ variable "aws_region" {
   default     = "eu-central-1"
 }
 
-variable "aws_profile" {
-  description = "AWS profile"
-  type        = string
-  default     = "terraform"
-}
-
 variable "project_name" {
   description = "Project name used for tagging (use underscores)"
   type        = string
@@ -46,8 +40,3 @@ variable "stage_subdomain" {
   default     = ""
 }
 
-variable "stage_pr_number" {
-  description = "The Pull Request number"
-  type    = string
-  default = ""
-}
