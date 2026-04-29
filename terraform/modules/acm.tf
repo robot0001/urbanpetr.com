@@ -1,7 +1,5 @@
 locals {
-  # Logic: Prod gets wildcard + www. Stage reuses the wildcard from Prod.
-  # So we only need to define SANs for Prod creation.
-  cert_sans = var.enable_www ? ["www.${var.domain_name}", "*.${var.domain_name}"] : ["*.${var.domain_name}"]
+  cert_sans = ["*.${var.domain_name}"]
 }
 
 module "acm_certificate" {
