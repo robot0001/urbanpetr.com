@@ -12,7 +12,7 @@ locals {
 
 # 2. Call the new Module
 module "cloudfront" {
-  source = "github.com/robot0001/urbanpetr-foundation//modules/cloudfront_website?ref=v1.1.1"
+  source = "github.com/robot0001/urbanpetr-foundation//modules/cloudfront_website?ref=v1.2.0"
 
   project_name = var.project_name
   environment  = var.environment
@@ -31,16 +31,22 @@ module "cloudfront" {
   custom_tags = local.common_tags
 }
 
-# 3. The Glue: Allow CloudFront to read S3
-# This stays in the App because it links Module A (S3) with Module B (CloudFront)
+# 3. The Glue: Allow CloudFront to read S3 via OAC
+# Service principal scoped to this specific distribution (more secure than OAI)
 data "aws_iam_policy_document" "site_bucket_policy" {
   statement {
     actions   = ["s3:GetObject"]
-    resources = ["${module.site.bucket_arn}/*"] # Updated to use module output
+    resources = ["${module.site.bucket_arn}/*"]
 
     principals {
-      type        = "AWS"
-      identifiers = [module.cloudfront.oai_iam_arn] # Use output from CloudFront module
+      type        = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceArn"
+      values   = [module.cloudfront.distribution_arn]
     }
   }
 }
