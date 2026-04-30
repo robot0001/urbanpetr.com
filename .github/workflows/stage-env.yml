@@ -97,6 +97,13 @@ jobs:
             --delete \
             --cache-control "max-age=60"
 
+      - name: Invalidate CloudFront cache
+        working-directory: terraform/envs/prod
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id $(terraform output -raw cloudfront_distribution_id) \
+            --paths "/*"
+
   stage_destroy:
     if: >
       github.event.action == 'closed' ||

@@ -12,3 +12,8 @@ output "cloudfront_domain" {
   description = "Domain name of the CloudFront distribution"
   value       = module.cloudfront.domain_name
 }
+
+output "cloudfront_distribution_id" {
+  description = "CloudFront distribution ID — required for cache invalidation in CI"
+  value       = module.cloudfront.distribution_id
+}
