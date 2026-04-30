@@ -1,6 +1,14 @@
 terraform {
   required_version = ">= 1.5.0"
 
+  required_providers {
+    aws = {
+      source                = "hashicorp/aws"
+      version               = ">= 5.0"
+      configuration_aliases = [aws.use1]
+    }
+  }
+
   # Backend config je v backend.tf
 }
 
@@ -28,7 +36,6 @@ module "app" {
   environment     = var.environment
   stage_subdomain = var.stage_subdomain
   project_name    = var.project_name
-  aws_region      = var.aws_region
   domain_name     = var.domain_name
   s3_bucket_name  = var.s3_bucket_name
   enable_www      = var.enable_www

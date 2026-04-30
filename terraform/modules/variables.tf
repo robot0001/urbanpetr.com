@@ -1,9 +1,3 @@
-variable "aws_region" {
-  description = "AWS region to deploy resources to"
-  type        = string
-  default     = "eu-central-1"
-}
-
 variable "project_name" {
   description = "Project name used for tagging (use underscores)"
   type        = string
