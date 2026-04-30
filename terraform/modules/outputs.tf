@@ -17,3 +17,8 @@ output "cloudfront_distribution_id" {
   description = "CloudFront distribution ID — required for cache invalidation in CI"
   value       = module.cloudfront.distribution_id
 }
+
+output "acm_certificate_arn" {
+  description = "ARN of the ACM certificate in use"
+  value       = module.acm_certificate.certificate_arn
+}
