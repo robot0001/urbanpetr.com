@@ -20,6 +20,9 @@ export default defineNuxtConfig({
   modules: ['@nuxtjs/tailwindcss', '@primevue/nuxt-module'],
   css: ['~/assets/css/global.css', '~/assets/css/background.css', 'primeicons/primeicons.css'],
   primevue: {
+    components: {
+      include: ['Panel', 'Card']
+    },
     options: {
       ripple: true,
       theme: {
