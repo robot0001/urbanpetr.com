@@ -47,3 +47,5 @@ https://stage{pr_number}.urbanpetr.com
 ```
 
 The environment is destroyed automatically when the label is removed or the PR is closed.
+
+> **Note:** Unlike `urbanpetr-api`, staging environments for this repo are deployed to **Account A (prod account)**, not the staging account. This is intentional — Route53, ACM, and CloudFront all live in Account A, and the cross-account complexity isn't justified for a static site. Both prod and staging use the `AWS_ROLE_TO_ASSUME_PROD` secret.
