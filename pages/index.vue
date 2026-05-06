@@ -1,3 +1,10 @@
+<script setup lang="ts">
+const { public: { apiBase } } = useRuntimeConfig()
+const { data: health, status: fetchStatus } = useFetch<{ status: string }>(`${apiBase}/health`, {
+  server: false
+})
+</script>
+
 <template lang="pug">
 Panel(header="Hey there" class="mb-8")
   p Computer enthusiast who's deeply into software development, team leadership, and currently obsessed with AI tools and what they can do.
@@ -21,4 +28,9 @@ div(class="flex flex-col lg:flex-row gap-6")
       ul
         li
           a(href="https://json.city" target="_blank") json.city
+      div(class="mt-4 pt-4 border-t border-white/10 text-sm flex items-center gap-2")
+        span(class="text-gray-400") API
+        span(
+          :class="health?.status === 'ok' ? 'text-green-400' : fetchStatus === 'pending' ? 'text-gray-500' : 'text-red-400'"
+        ) {{ health?.status === 'ok' ? '● ok' : fetchStatus === 'pending' ? '○ …' : '● unavailable' }}
 </template>

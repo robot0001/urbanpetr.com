@@ -160,6 +160,8 @@ jobs:
 
       - name: Generate static site
         run: npm run generate
+        env:
+          NUXT_PUBLIC_API_BASE: https://api.urbanpetr.com
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6.1.0

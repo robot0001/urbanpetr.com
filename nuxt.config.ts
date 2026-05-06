@@ -17,6 +17,11 @@ const Theme = definePreset(Aura, {
 })
 
 export default defineNuxtConfig({
+  runtimeConfig: {
+    public: {
+      apiBase: 'https://api.urbanpetr.com'
+    }
+  },
   modules: ['@nuxtjs/tailwindcss', '@primevue/nuxt-module'],
   css: ['~/assets/css/global.css', '~/assets/css/background.css', 'primeicons/primeicons.css'],
   primevue: {
