@@ -90,6 +90,8 @@ jobs:
 
       - name: Generate static site
         run: npm run generate
+        env:
+          NUXT_PUBLIC_API_BASE: https://api.urbanpetr.com
 
       - name: Sync to stage bucket
         run: |
