@@ -162,6 +162,7 @@ jobs:
         run: npm run generate
         env:
           NUXT_PUBLIC_API_BASE: https://api.urbanpetr.com
+          NUXT_PUBLIC_GTAG_ID: ${{ secrets.GA_MEASUREMENT_ID }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6.1.0

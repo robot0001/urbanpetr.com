@@ -22,7 +22,10 @@ export default defineNuxtConfig({
       apiBase: 'https://api.urbanpetr.com'
     }
   },
-  modules: ['@nuxtjs/tailwindcss', '@primevue/nuxt-module'],
+  modules: ['@nuxtjs/tailwindcss', '@primevue/nuxt-module', 'nuxt-gtag'],
+  gtag: {
+    id: process.env.NUXT_PUBLIC_GTAG_ID
+  },
   css: ['~/assets/css/global.css', '~/assets/css/background.css', 'primeicons/primeicons.css'],
   primevue: {
     components: {
