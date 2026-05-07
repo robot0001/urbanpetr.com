@@ -1,5 +1,14 @@
 .git
+
+# Credentials — never commit secrets
 AWS ACCESS
+.env
+.env.*
+*.pem
+*.key
+*credentials*
+
+# Terraform
 terraform/.terraform
 terraform/terraform.tfstate
 terraform/terraform.tfstate.backup
