@@ -6,7 +6,9 @@ const Theme = definePreset(Aura, {})
 export default defineNuxtConfig({
   runtimeConfig: {
     public: {
-      apiBase: 'https://api.urbanpetr.com'
+      apiBase: 'https://api.urbanpetr.com',
+      cognitoDomain: '',   // NUXT_PUBLIC_COGNITO_DOMAIN   e.g. urbanpetr-prod.auth.eu-central-1.amazoncognito.com
+      cognitoClientId: '', // NUXT_PUBLIC_COGNITO_CLIENT_ID
     }
   },
   modules: ['@nuxtjs/tailwindcss', '@primevue/nuxt-module'],

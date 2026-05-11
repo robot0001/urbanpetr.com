@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-
 const youtubeOpen = ref(false)
+const { isAuthenticated, userEmail, login, logout } = useAuth()
 </script>
 
 <template lang="pug">
@@ -36,6 +35,18 @@ div(class="min-h-screen bg-gray-950 text-gray-100")
           class="block px-4 py-2 text-sm text-gray-400 hover:text-gray-100 hover:bg-white/5"
           active-class="!text-white font-medium"
         ) All
+    div(class="ml-auto flex items-center gap-4")
+      template(v-if="isAuthenticated")
+        span(class="text-sm text-gray-500") {{ userEmail }}
+        button(
+          class="text-sm text-gray-400 hover:text-gray-100"
+          @click="logout"
+        ) Sign out
+      template(v-else)
+        button(
+          class="text-sm text-gray-400 hover:text-gray-100"
+          @click="login"
+        ) Sign in
   main(class="px-6 py-8 max-w-5xl mx-auto")
     NuxtPage
 </template>
