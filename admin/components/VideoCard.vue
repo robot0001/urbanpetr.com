@@ -11,6 +11,7 @@ const { public: { apiBase } } = useRuntimeConfig()
 const toggling = ref(false)
 
 async function toggle() {
+  if (props.item.active && !window.confirm(`Are you sure you want to deactivate "${props.item.video.title}"?`)) return
   toggling.value = true
   try {
     const action = props.item.active ? 'deactivate' : 'activate'
@@ -42,7 +43,7 @@ function formatCount(n: number | null): string | null {
 </script>
 
 <template lang="pug">
-div(:class="['flex gap-4 p-4 rounded-lg border bg-gray-900 border-gray-800 transition-opacity', { 'opacity-40': !item.active }]")
+div(:class="['flex gap-4 p-4 rounded-lg border transition-colors', item.active ? 'bg-gray-900 border-green-800' : 'bg-gray-900/30 border-gray-800/50']")
   a(:href="item.video.url" target="_blank" rel="noopener" class="shrink-0")
     div(class="w-32 aspect-video rounded overflow-hidden bg-gray-800 flex items-center justify-center")
       img(
@@ -69,7 +70,7 @@ div(:class="['flex gap-4 p-4 rounded-lg border bg-gray-900 border-gray-800 trans
       div(class="flex flex-col gap-2 shrink-0 self-start")
         Button(
           :label="item.active ? 'Deactivate' : 'Activate'"
-          :severity="item.active ? 'secondary' : 'success'"
+          :severity="item.active ? 'danger' : 'success'"
           size="small"
           :loading="toggling"
           @click="toggle"

@@ -44,6 +44,7 @@ export function useYoutubeHistory(endpoint: string) {
   const items = ref<HistoryItem[]>([])
   const pagination = ref<Pagination | null>(null)
   const page = ref(1)
+  const itemsPerPage = ref(25)
   const sort = ref<'asc' | 'desc'>('desc')
   const loading = ref(false)
   const error = ref<string | null>(null)
@@ -54,7 +55,7 @@ export function useYoutubeHistory(endpoint: string) {
     loading.value = true
     error.value = null
     try {
-      const url = `${apiBase}${endpoint}?page=${p}&items_per_page=50&sort=${sort.value}`
+      const url = `${apiBase}${endpoint}?page=${p}&items_per_page=${itemsPerPage.value}&sort=${sort.value}`
       const data = await $fetch<{ items: HistoryItem[], pagination: Pagination }>(url)
       items.value = data.items ?? []
       pagination.value = data.pagination
@@ -82,5 +83,10 @@ export function useYoutubeHistory(endpoint: string) {
 
   onMounted(() => fetchPage(1))
 
-  return { items, pagination, page, sort, loading, error, fetchPage, onToggled, toggleSort }
+  function setItemsPerPage(n: number) {
+    itemsPerPage.value = n
+    fetchPage(1)
+  }
+
+  return { items, pagination, page, itemsPerPage, sort, loading, error, fetchPage, onToggled, toggleSort, setItemsPerPage }
 }
