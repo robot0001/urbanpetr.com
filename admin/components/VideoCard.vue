@@ -64,7 +64,14 @@ div(:class="['flex gap-4 p-4 rounded-lg border transition-colors', item.active ?
           class="font-medium text-gray-100 hover:text-orange-400 line-clamp-2 leading-snug block"
         ) {{ item.video.title }}
         p(class="text-sm text-gray-400 mt-1 truncate")
-          span(v-if="item.video.channel") {{ item.video.channel }}
+          a(
+            v-if="item.video.channel && item.video.channel_url"
+            :href="item.video.channel_url"
+            target="_blank"
+            rel="noopener"
+            class="hover:text-orange-400"
+          ) {{ item.video.channel }}
+          span(v-else-if="item.video.channel") {{ item.video.channel }}
           span(v-if="item.video.channel") &nbsp;·&nbsp;
           span Watched {{ item.watched_at.formatted }}
       div(class="flex flex-col gap-2 shrink-0 self-start")
