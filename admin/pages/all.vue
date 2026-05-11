@@ -1,4 +1,3 @@
 <template lang="pug">
-div
-  h1(class="text-xl font-semibold mb-6") YouTube History — All
+HistoryList(endpoint="/v1/history/youtube/all" title="YouTube History — All")
 </template>
