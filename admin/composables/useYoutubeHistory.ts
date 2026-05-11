@@ -15,6 +15,7 @@ export interface Video {
   url: string
   title: string
   channel: string | null
+  channel_url: string | null
   thumbnail_url: string | null
   description: string | null
   duration: Duration | null
