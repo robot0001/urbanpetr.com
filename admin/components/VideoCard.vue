@@ -2,12 +2,16 @@
 import type { HistoryItem } from '~/composables/useYoutubeHistory'
 
 const props = defineProps<{ item: HistoryItem }>()
-const emit = defineEmits<{ (e: 'toggled', uuid: string, newActive: boolean): void }>()
+const emit = defineEmits<{
+  (e: 'toggled', uuid: string, newActive: boolean): void
+  (e: 'enriched', uuid: string): void
+}>()
 
 const { public: { apiBase } } = useRuntimeConfig()
 const toggling = ref(false)
 
 async function toggle() {
+  if (props.item.active && !window.confirm(`Are you sure you want to deactivate "${props.item.video.title}"?`)) return
   toggling.value = true
   try {
     const action = props.item.active ? 'deactivate' : 'activate'
@@ -15,6 +19,18 @@ async function toggle() {
     emit('toggled', props.item.uuid, !props.item.active)
   } finally {
     toggling.value = false
+  }
+}
+
+const enriching = ref(false)
+
+async function enrich() {
+  enriching.value = true
+  try {
+    await $fetch(`${apiBase}/v1/history/youtube/${props.item.uuid}/enrich`, { method: 'POST' })
+    emit('enriched', props.item.uuid)
+  } finally {
+    enriching.value = false
   }
 }
 
@@ -27,7 +43,7 @@ function formatCount(n: number | null): string | null {
 </script>
 
 <template lang="pug">
-div(:class="['flex gap-4 p-4 rounded-lg border bg-gray-900 border-gray-800 transition-opacity', { 'opacity-40': !item.active }]")
+div(:class="['flex gap-4 p-4 rounded-lg border transition-colors', item.active ? 'bg-gray-900 border-green-800' : 'bg-gray-900/30 border-gray-800/50']")
   a(:href="item.video.url" target="_blank" rel="noopener" class="shrink-0")
     div(class="w-32 aspect-video rounded overflow-hidden bg-gray-800 flex items-center justify-center")
       img(
@@ -51,14 +67,23 @@ div(:class="['flex gap-4 p-4 rounded-lg border bg-gray-900 border-gray-800 trans
           span(v-if="item.video.channel") {{ item.video.channel }}
           span(v-if="item.video.channel") &nbsp;·&nbsp;
           span Watched {{ item.watched_at.formatted }}
-      Button(
-        :label="item.active ? 'Deactivate' : 'Activate'"
-        :severity="item.active ? 'secondary' : 'success'"
-        size="small"
-        :loading="toggling"
-        class="shrink-0 self-start"
-        @click="toggle"
-      )
+      div(class="flex flex-col gap-2 shrink-0 self-start")
+        Button(
+          :label="item.active ? 'Deactivate' : 'Activate'"
+          :severity="item.active ? 'danger' : 'success'"
+          size="small"
+          :loading="toggling"
+          @click="toggle"
+        )
+        Button(
+          v-if="!item.video.thumbnail_url"
+          label="Fetch details"
+          severity="secondary"
+          size="small"
+          icon="pi pi-download"
+          :loading="enriching"
+          @click="enrich"
+        )
 
     div(class="flex items-center gap-2 mt-auto pt-1 text-xs text-gray-500 flex-wrap")
       span(v-if="item.video.duration") {{ item.video.duration.formatted }}

@@ -4,21 +4,51 @@ const props = defineProps<{
   title: string
 }>()
 
-const { items, pagination, page, sort, loading, error, fetchPage, onToggled, toggleSort } = useYoutubeHistory(props.endpoint)
+const { items, pagination, page, itemsPerPage, sort, loading, error, fetchPage, onToggled, toggleSort, setItemsPerPage } = useYoutubeHistory(props.endpoint)
+
+const pageSizeOptions = [10, 25, 50, 100]
 </script>
 
 <template lang="pug">
 div
-  div(class="flex items-center justify-between mb-6")
+  div(class="flex items-center justify-between mb-4")
     h1(class="text-xl font-semibold")
       | {{ title }}
       span(v-if="pagination" class="ml-2 text-sm font-normal text-gray-400") {{ pagination.items_total.toLocaleString() }} items
+    div(class="flex items-center gap-3")
+      div(class="flex items-center gap-1")
+        button(
+          v-for="n in pageSizeOptions"
+          :key="n"
+          :class="['px-2 py-1 text-xs rounded', n === itemsPerPage ? 'bg-orange-600 text-white' : 'text-gray-400 hover:text-gray-100']"
+          @click="setItemsPerPage(n)"
+        ) {{ n }}
+      Button(
+        :label="sort === 'desc' ? 'Newest first' : 'Oldest first'"
+        severity="secondary"
+        size="small"
+        icon="pi pi-sort-alt"
+        @click="toggleSort"
+      )
+
+  div(v-if="pagination && pagination.pages_total > 1" class="flex items-center justify-center gap-4 mb-4")
     Button(
-      :label="sort === 'desc' ? 'Newest first' : 'Oldest first'"
+      label="Prev"
+      icon="pi pi-chevron-left"
       severity="secondary"
       size="small"
-      icon="pi pi-sort-alt"
-      @click="toggleSort"
+      :disabled="page <= 1"
+      @click="fetchPage(page - 1)"
+    )
+    span(class="text-sm text-gray-400") Page {{ page }} of {{ pagination.pages_total }}
+    Button(
+      label="Next"
+      icon="pi pi-chevron-right"
+      iconPos="right"
+      severity="secondary"
+      size="small"
+      :disabled="page >= pagination.pages_total"
+      @click="fetchPage(page + 1)"
     )
 
   div(v-if="error" class="text-red-400 mb-4") {{ error }}
@@ -36,11 +66,12 @@ div
       :key="item.uuid"
       :item="item"
       @toggled="onToggled"
+      @enriched="fetchPage(page)"
     )
 
   div(v-else class="text-gray-500 py-12 text-center") No items.
 
-  div(v-if="pagination && pagination.pages_total > 1" class="flex items-center justify-center gap-4 mt-8")
+  div(v-if="pagination && pagination.pages_total > 1" class="flex items-center justify-center gap-4 mt-4")
     Button(
       label="Prev"
       icon="pi pi-chevron-left"
