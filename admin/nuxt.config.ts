@@ -4,7 +4,6 @@ import { definePreset } from '@primeuix/themes'
 const Theme = definePreset(Aura, {})
 
 export default defineNuxtConfig({
-  ssr: false,
   runtimeConfig: {
     public: {
       apiBase: 'https://api.urbanpetr.com'
