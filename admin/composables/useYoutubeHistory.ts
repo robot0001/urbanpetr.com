@@ -41,6 +41,7 @@ export interface Pagination {
 
 export function useYoutubeHistory(endpoint: string) {
   const { public: { apiBase } } = useRuntimeConfig()
+  const { token, login } = useAuth()
 
   const items = ref<HistoryItem[]>([])
   const pagination = ref<Pagination | null>(null)
@@ -57,11 +58,13 @@ export function useYoutubeHistory(endpoint: string) {
     error.value = null
     try {
       const url = `${apiBase}${endpoint}?page=${p}&items_per_page=${itemsPerPage.value}&sort=${sort.value}`
-      const data = await $fetch<{ items: HistoryItem[], pagination: Pagination }>(url)
+      const headers: Record<string, string> = token.value ? { Authorization: `Bearer ${token.value}` } : {}
+      const data = await $fetch<{ items: HistoryItem[], pagination: Pagination }>(url, { headers })
       items.value = data.items ?? []
       pagination.value = data.pagination
       page.value = p
     } catch (e: any) {
+      if (e?.response?.status === 401) { login(); return }
       error.value = e?.message ?? 'Failed to load'
     } finally {
       loading.value = false
