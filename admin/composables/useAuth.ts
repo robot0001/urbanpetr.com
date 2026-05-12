@@ -54,7 +54,9 @@ export function useAuth() {
       code_challenge_method: 'S256',
       identity_provider: 'Google',
     })
-    window.location.href = `https://${domain}/oauth2/authorize?${params}`
+    const authorizeUrl = `https://${domain}/oauth2/authorize?${params}`
+    console.log('[auth] login: redirect_uri=%s authorizeUrl=%s', `${window.location.origin}/callback`, authorizeUrl)
+    window.location.href = authorizeUrl
   }
 
   async function exchangeCode(code: string): Promise<void> {
