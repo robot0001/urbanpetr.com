@@ -162,7 +162,7 @@ jobs:
               AllowedOAuthFlows: .AllowedOAuthFlows,
               AllowedOAuthScopes: .AllowedOAuthScopes,
               AllowedOAuthFlowsUserPoolClient: .AllowedOAuthFlowsUserPoolClient
-            }' > /tmp/cognito-update.json
+            } | with_entries(select(.value != null))' > /tmp/cognito-update.json
 
           aws cognito-idp update-user-pool-client \
             --region "$AWS_REGION" \
@@ -326,7 +326,7 @@ jobs:
               AllowedOAuthFlows: .AllowedOAuthFlows,
               AllowedOAuthScopes: .AllowedOAuthScopes,
               AllowedOAuthFlowsUserPoolClient: .AllowedOAuthFlowsUserPoolClient
-            }' > /tmp/cognito-update.json
+            } | with_entries(select(.value != null))' > /tmp/cognito-update.json
 
           aws cognito-idp update-user-pool-client \
             --region "$AWS_REGION" \
