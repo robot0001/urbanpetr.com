@@ -1,16 +1,16 @@
 <script setup lang="ts">
-const route = useRoute()
 const router = useRouter()
 const { exchangeCode } = useAuth()
 
 const error = ref<string | null>(null)
 
 onMounted(async () => {
-  const code = route.query.code as string | undefined
-  const errorParam = route.query.error as string | undefined
+  const params = new URLSearchParams(window.location.search)
+  const code = params.get('code') ?? undefined
+  const errorParam = params.get('error') ?? undefined
 
   if (errorParam) {
-    error.value = `Sign-in failed: ${route.query.error_description ?? errorParam}`
+    error.value = `Sign-in failed: ${params.get('error_description') ?? errorParam}`
     return
   }
 
