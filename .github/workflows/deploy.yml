@@ -50,13 +50,23 @@ jobs:
         run: tflint --recursive
 
   terraform_plan_pr:
-    name: Terraform plan for prod env
+    name: Terraform plan (${{ matrix.name }})
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
 
     permissions:
       id-token: write
       contents: read
+
+    strategy:
+      matrix:
+        include:
+          - name: prod
+            dir: terraform/envs/prod
+            plan_args: '-var-file="prod.tfvars"'
+          - name: admin
+            dir: terraform/envs/admin
+            plan_args: ''
 
     steps:
       - name: Checkout
@@ -78,19 +88,19 @@ jobs:
           terraform_version: 1.9.8
 
       - name: Terraform init
-        working-directory: terraform/envs/prod
+        working-directory: ${{ matrix.dir }}
         run: terraform init -input=false
 
       - name: Terraform validate
-        working-directory: terraform/envs/prod
+        working-directory: ${{ matrix.dir }}
         run: terraform validate
 
-      - name: Terraform plan (PR)
-        working-directory: terraform/envs/prod
-        run: terraform plan -var-file="prod.tfvars" -input=false -no-color
+      - name: Terraform plan
+        working-directory: ${{ matrix.dir }}
+        run: terraform plan ${{ matrix.plan_args }} -input=false -no-color
 
-  terraform_apply_main:
-    name: Terraform apply to prod env
+  terraform_apply:
+    name: Terraform apply (prod + admin)
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
 
@@ -99,7 +109,9 @@ jobs:
       contents: read
 
     outputs:
-      cloudfront_distribution_id: ${{ steps.tf_outputs.outputs.distribution_id }}
+      web_cloudfront_distribution_id: ${{ steps.tf_web.outputs.distribution_id }}
+      admin_s3_bucket_name: ${{ steps.tf_admin.outputs.s3_bucket_name }}
+      admin_cloudfront_distribution_id: ${{ steps.tf_admin.outputs.cloudfront_distribution_id }}
 
     steps:
       - name: Checkout
@@ -120,25 +132,40 @@ jobs:
         with:
           terraform_version: 1.9.8
 
-      - name: Terraform init
+      - name: Terraform init (prod)
         working-directory: terraform/envs/prod
         run: terraform init -input=false
 
-      - name: Terraform apply (main)
+      - name: Terraform apply (prod)
         working-directory: terraform/envs/prod
         env:
           TF_VAR_s3_bucket_name: ${{ env.S3_BUCKET_NAME }}
         run: terraform apply -var-file="prod.tfvars" -auto-approve -input=false
 
-      - name: Capture CloudFront distribution ID
-        id: tf_outputs
+      - name: Capture prod outputs
+        id: tf_web
         working-directory: terraform/envs/prod
         run: echo "distribution_id=$(terraform output -raw cloudfront_distribution_id)" >> $GITHUB_OUTPUT
 
-  sync_static:
-    name: Sync static files to S3
+      - name: Terraform init (admin)
+        working-directory: terraform/envs/admin
+        run: terraform init -input=false
+
+      - name: Terraform apply (admin)
+        working-directory: terraform/envs/admin
+        run: terraform apply -auto-approve -input=false
+
+      - name: Capture admin outputs
+        id: tf_admin
+        working-directory: terraform/envs/admin
+        run: |
+          echo "s3_bucket_name=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
+          echo "cloudfront_distribution_id=$(terraform output -raw cloudfront_distribution_id)" >> $GITHUB_OUTPUT
+
+  sync:
+    name: Build and sync (web + admin)
     runs-on: ubuntu-latest
-    needs: terraform_apply_main
+    needs: terraform_apply
     if: github.event_name == 'push'
 
     permissions:
@@ -152,17 +179,29 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install web dependencies
         run: npm ci
 
-      - name: Generate static site
+      - name: Generate web static site
         run: npm run generate
         env:
           NUXT_PUBLIC_API_BASE: https://api.urbanpetr.com
           NUXT_PUBLIC_GTAG_ID: ${{ secrets.GA_MEASUREMENT_ID }}
+
+      - name: Install admin dependencies
+        working-directory: admin
+        run: npm ci
+
+      - name: Generate admin static site
+        working-directory: admin
+        run: npm run generate
+        env:
+          NUXT_PUBLIC_API_BASE: https://api.urbanpetr.com
+          NUXT_PUBLIC_COGNITO_DOMAIN: ${{ secrets.COGNITO_DOMAIN }}
+          NUXT_PUBLIC_COGNITO_CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6.1.0
@@ -170,14 +209,26 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_PROD }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Sync to S3
+      - name: Sync web to S3
         run: |
           aws s3 sync .output/public/ s3://${{ env.S3_BUCKET_NAME }} \
             --delete \
             --cache-control "max-age=300"
 
-      - name: Invalidate CloudFront cache
+      - name: Invalidate web CloudFront cache
         run: |
           aws cloudfront create-invalidation \
-            --distribution-id ${{ needs.terraform_apply_main.outputs.cloudfront_distribution_id }} \
+            --distribution-id ${{ needs.terraform_apply.outputs.web_cloudfront_distribution_id }} \
+            --paths "/*"
+
+      - name: Sync admin to S3
+        run: |
+          aws s3 sync admin/.output/public/ s3://${{ needs.terraform_apply.outputs.admin_s3_bucket_name }} \
+            --delete \
+            --cache-control "max-age=300"
+
+      - name: Invalidate admin CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ needs.terraform_apply.outputs.admin_cloudfront_distribution_id }} \
             --paths "/*"

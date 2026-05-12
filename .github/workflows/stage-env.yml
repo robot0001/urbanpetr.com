@@ -6,12 +6,13 @@ on:
 
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
-  S3_BUCKET_PREFIX: ${{ secrets.S3_BUCKET_PREFIX }} # e.g. urbanpetr-website-stage-
-  DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}           # urbanpetr.com
+  S3_BUCKET_PREFIX: ${{ secrets.S3_BUCKET_PREFIX }}   # e.g. urbanpetr-website-stage-
+  DOMAIN_NAME: ${{ secrets.DOMAIN_NAME }}             # urbanpetr.com
+  ADMIN_S3_BUCKET_PREFIX: urbanpetr-admin-stage-
 
 jobs:
   stage_plan_apply:
-    # Spustit pokud NENI zavřeno A ZAROVEN má label 'stage'
+    # Run when not closed AND has the 'stage' label
     if: >
       github.event.action != 'closed' &&
       contains(github.event.pull_request.labels.*.name, 'stage')
@@ -29,7 +30,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Required to download private modules
       - name: Configure Git Credentials
         run: |
           git config --global url."https://oauth2:${{ secrets.GLOBAL_MODULES_PAT }}@github.com".insteadOf "https://github.com"
@@ -45,31 +45,29 @@ jobs:
         with:
           terraform_version: 1.9.8
 
-      # ZMĚNA: working-directory nastaveno tam, kde jsou .tf soubory
-      - name: Terraform init
+      # ── Terraform ─────────────────────────────────────────────────────────
+
+      - name: Terraform init (website)
         working-directory: terraform/envs/prod
         run: terraform init -input=false
 
-      # ZMĚNA: working-directory
-      - name: Select/create workspace for this PR
+      - name: Terraform init (admin)
+        working-directory: terraform/envs/admin
+        run: terraform init -input=false
+
+      - name: Select/create workspace (website)
         working-directory: terraform/envs/prod
         run: |
           terraform workspace select stage-pr-${{ github.event.number }} \
             || terraform workspace new stage-pr-${{ github.event.number }}
 
-      # ZMĚNA: working-directory a cesta k var-file
-      - name: Terraform plan (stage)
-        working-directory: terraform/envs/prod
+      - name: Select/create workspace (admin)
+        working-directory: terraform/envs/admin
         run: |
-          terraform plan \
-            -var-file="prod.tfvars" \
-            -var="environment=stage" \
-            -var="stage_subdomain=stage${{ github.event.number }}" \
-            -var="s3_bucket_name=${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }}" \
-            -input=false -no-color
+          terraform workspace select admin-stage-pr-${{ github.event.number }} \
+            || terraform workspace new admin-stage-pr-${{ github.event.number }}
 
-      # ZMĚNA: working-directory a cesta k var-file
-      - name: Terraform apply (stage)
+      - name: Terraform apply (website)
         working-directory: terraform/envs/prod
         run: |
           terraform apply \
@@ -79,28 +77,121 @@ jobs:
             -var="s3_bucket_name=${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }}" \
             -auto-approve -input=false
 
+      - name: Terraform apply (admin)
+        working-directory: terraform/envs/admin
+        run: |
+          terraform apply \
+            -var="environment=stage" \
+            -var="stage_number=${{ github.event.number }}" \
+            -auto-approve -input=false
+
+      # ── Cognito ───────────────────────────────────────────────────────────
+
+      - name: Configure staging AWS credentials (Cognito)
+        uses: aws-actions/configure-aws-credentials@v6.1.0
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_COGNITO_STAGING }}
+          aws-region: eu-central-1
+
+      - name: Register admin Cognito callback URL
+        env:
+          POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID_STAGING }}
+          CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID_STAGING }}
+          NEW_CALLBACK: https://admin-stage${{ github.event.number }}.${{ env.DOMAIN_NAME }}/callback
+          NEW_LOGOUT: https://admin-stage${{ github.event.number }}.${{ env.DOMAIN_NAME }}
+        run: |
+          CLIENT=$(aws cognito-idp describe-user-pool-client \
+            --region "$AWS_REGION" \
+            --user-pool-id "$POOL_ID" \
+            --client-id "$CLIENT_ID" \
+            --query 'UserPoolClient' --output json)
+
+          echo "$CLIENT" | jq \
+            --arg cb "$NEW_CALLBACK" --arg lo "$NEW_LOGOUT" \
+            '{
+              UserPoolId: .UserPoolId,
+              ClientId: .ClientId,
+              ClientName: .ClientName,
+              RefreshTokenValidity: .RefreshTokenValidity,
+              AccessTokenValidity: .AccessTokenValidity,
+              IdTokenValidity: .IdTokenValidity,
+              TokenValidityUnits: .TokenValidityUnits,
+              ReadAttributes: .ReadAttributes,
+              WriteAttributes: .WriteAttributes,
+              ExplicitAuthFlows: .ExplicitAuthFlows,
+              SupportedIdentityProviders: .SupportedIdentityProviders,
+              CallbackURLs: (.CallbackURLs + [$cb] | unique),
+              LogoutURLs: (.LogoutURLs + [$lo] | unique),
+              AllowedOAuthFlows: .AllowedOAuthFlows,
+              AllowedOAuthScopes: .AllowedOAuthScopes,
+              AllowedOAuthFlowsUserPoolClient: .AllowedOAuthFlowsUserPoolClient
+            } | with_entries(select(.value != null))' > /tmp/cognito-update.json
+
+          aws cognito-idp update-user-pool-client \
+            --region "$AWS_REGION" \
+            --cli-input-json file:///tmp/cognito-update.json
+
+      - name: Restore prod AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.1.0
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_PROD }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # ── Build ─────────────────────────────────────────────────────────────
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            admin/package-lock.json
 
-      - name: Install dependencies
+      - name: Install website dependencies
         run: npm ci
 
-      - name: Generate static site
+      - name: Install admin dependencies
+        working-directory: admin
+        run: npm ci
+
+      - name: Generate website
         run: npm run generate
         env:
-          NUXT_PUBLIC_API_BASE: https://api.urbanpetr.com
+          NUXT_PUBLIC_API_BASE: https://api-stage${{ github.event.number }}.urbanpetr.com
 
-      - name: Sync to stage bucket
+      - name: Generate admin
+        working-directory: admin
+        run: npm run generate
+        env:
+          NUXT_PUBLIC_API_BASE: https://api-stage${{ github.event.number }}.urbanpetr.com
+          NUXT_PUBLIC_COGNITO_DOMAIN: ${{ secrets.COGNITO_DOMAIN_STAGING }}
+          NUXT_PUBLIC_COGNITO_CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID_STAGING }}
+
+      # ── Deploy ────────────────────────────────────────────────────────────
+
+      - name: Sync website to S3
         run: |
           aws s3 sync .output/public/ s3://${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }} \
             --delete \
             --cache-control "max-age=60"
 
-      - name: Invalidate CloudFront cache
+      - name: Sync admin to S3
+        run: |
+          aws s3 sync admin/.output/public/ \
+            s3://${{ env.ADMIN_S3_BUCKET_PREFIX }}${{ github.event.number }} \
+            --delete \
+            --cache-control "max-age=60"
+
+      - name: Invalidate website CloudFront cache
         working-directory: terraform/envs/prod
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id $(terraform output -raw cloudfront_distribution_id) \
+            --paths "/*"
+
+      - name: Invalidate admin CloudFront cache
+        working-directory: terraform/envs/admin
         run: |
           aws cloudfront create-invalidation \
             --distribution-id $(terraform output -raw cloudfront_distribution_id) \
@@ -119,6 +210,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Configure Git Credentials
         run: |
           git config --global url."https://oauth2:${{ secrets.GLOBAL_MODULES_PAT }}@github.com".insteadOf "https://github.com"
@@ -134,13 +226,19 @@ jobs:
         with:
           terraform_version: 1.9.8
 
-      # ZMĚNA: working-directory
-      - name: Terraform init
+      # ── Terraform init ────────────────────────────────────────────────────
+
+      - name: Terraform init (website)
         working-directory: terraform/envs/prod
         run: terraform init -input=false
 
-      # ZMĚNA: working-directory
-      - name: Select workspace if it exists
+      - name: Terraform init (admin)
+        working-directory: terraform/envs/admin
+        run: terraform init -input=false
+
+      # ── Select workspaces ─────────────────────────────────────────────────
+
+      - name: Select website workspace if it exists
         id: select_ws
         working-directory: terraform/envs/prod
         run: |
@@ -150,8 +248,74 @@ jobs:
             echo "no_workspace=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # ZMĚNA: working-directory a cesta k var-file
-      - name: Terraform destroy (stage)
+      - name: Select admin workspace if it exists
+        id: select_admin_ws
+        working-directory: terraform/envs/admin
+        run: |
+          if terraform workspace list | grep -q "admin-stage-pr-${{ github.event.number }}"; then
+            terraform workspace select admin-stage-pr-${{ github.event.number }}
+          else
+            echo "no_workspace=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Cognito ───────────────────────────────────────────────────────────
+
+      - name: Configure staging AWS credentials (Cognito)
+        if: steps.select_admin_ws.outputs.no_workspace != 'true'
+        uses: aws-actions/configure-aws-credentials@v6.1.0
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_COGNITO_STAGING }}
+          aws-region: eu-central-1
+
+      - name: Deregister admin Cognito callback URL
+        if: steps.select_admin_ws.outputs.no_workspace != 'true'
+        env:
+          POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID_STAGING }}
+          CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID_STAGING }}
+          DEL_CALLBACK: https://admin-stage${{ github.event.number }}.${{ env.DOMAIN_NAME }}/callback
+          DEL_LOGOUT: https://admin-stage${{ github.event.number }}.${{ env.DOMAIN_NAME }}
+        run: |
+          CLIENT=$(aws cognito-idp describe-user-pool-client \
+            --region "$AWS_REGION" \
+            --user-pool-id "$POOL_ID" \
+            --client-id "$CLIENT_ID" \
+            --query 'UserPoolClient' --output json)
+
+          echo "$CLIENT" | jq \
+            --arg cb "$DEL_CALLBACK" --arg lo "$DEL_LOGOUT" \
+            '{
+              UserPoolId: .UserPoolId,
+              ClientId: .ClientId,
+              ClientName: .ClientName,
+              RefreshTokenValidity: .RefreshTokenValidity,
+              AccessTokenValidity: .AccessTokenValidity,
+              IdTokenValidity: .IdTokenValidity,
+              TokenValidityUnits: .TokenValidityUnits,
+              ReadAttributes: .ReadAttributes,
+              WriteAttributes: .WriteAttributes,
+              ExplicitAuthFlows: .ExplicitAuthFlows,
+              SupportedIdentityProviders: .SupportedIdentityProviders,
+              CallbackURLs: (.CallbackURLs | map(select(. != $cb))),
+              LogoutURLs: (.LogoutURLs | map(select(. != $lo))),
+              AllowedOAuthFlows: .AllowedOAuthFlows,
+              AllowedOAuthScopes: .AllowedOAuthScopes,
+              AllowedOAuthFlowsUserPoolClient: .AllowedOAuthFlowsUserPoolClient
+            } | with_entries(select(.value != null))' > /tmp/cognito-update.json
+
+          aws cognito-idp update-user-pool-client \
+            --region "$AWS_REGION" \
+            --cli-input-json file:///tmp/cognito-update.json
+
+      - name: Restore prod AWS credentials
+        if: steps.select_admin_ws.outputs.no_workspace != 'true'
+        uses: aws-actions/configure-aws-credentials@v6.1.0
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_PROD }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # ── Destroy ───────────────────────────────────────────────────────────
+
+      - name: Terraform destroy (website)
         if: steps.select_ws.outputs.no_workspace != 'true'
         working-directory: terraform/envs/prod
         run: |
@@ -162,10 +326,25 @@ jobs:
             -var="s3_bucket_name=${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }}" \
             -auto-approve -input=false
 
-      # ZMĚNA: working-directory
-      - name: Delete workspace
+      - name: Terraform destroy (admin)
+        if: steps.select_admin_ws.outputs.no_workspace != 'true'
+        working-directory: terraform/envs/admin
+        run: |
+          terraform destroy \
+            -var="environment=stage" \
+            -var="stage_number=${{ github.event.number }}" \
+            -auto-approve -input=false
+
+      - name: Delete website workspace
         if: steps.select_ws.outputs.no_workspace != 'true'
         working-directory: terraform/envs/prod
         run: |
           terraform workspace select default
           terraform workspace delete -force stage-pr-${{ github.event.number }}
+
+      - name: Delete admin workspace
+        if: steps.select_admin_ws.outputs.no_workspace != 'true'
+        working-directory: terraform/envs/admin
+        run: |
+          terraform workspace select default
+          terraform workspace delete -force admin-stage-pr-${{ github.event.number }}
