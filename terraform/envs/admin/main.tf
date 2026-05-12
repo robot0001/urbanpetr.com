@@ -9,6 +9,16 @@ terraform {
   }
 }
 
+variable "environment" {
+  type    = string
+  default = "prod"
+}
+
+variable "stage_number" {
+  type    = string
+  default = ""
+}
+
 provider "aws" {
   region = "eu-central-1"
 }
@@ -19,12 +29,13 @@ provider "aws" {
 }
 
 locals {
-  domain    = "urbanpetr.com"
-  subdomain = "admin.urbanpetr.com"
+  domain      = "urbanpetr.com"
+  subdomain   = var.environment == "stage" ? "admin-stage${var.stage_number}.${local.domain}" : "admin.${local.domain}"
+  bucket_name = var.environment == "stage" ? "urbanpetr-admin-stage-${var.stage_number}" : "urbanpetr-admin"
 
   common_tags = {
     Project     = "urbanpetr_admin"
-    Environment = "prod"
+    Environment = var.environment
   }
 }
 
@@ -39,7 +50,7 @@ data "terraform_remote_state" "foundation" {
   }
 }
 
-# Reuse existing *.urbanpetr.com wildcard cert (covers admin.urbanpetr.com)
+# Wildcard cert covers both admin.urbanpetr.com and admin-stageN.urbanpetr.com
 data "aws_acm_certificate" "wildcard" {
   provider    = aws.use1
   domain      = local.domain
@@ -47,28 +58,25 @@ data "aws_acm_certificate" "wildcard" {
   most_recent = true
 }
 
-# S3 bucket for admin static files
 module "bucket" {
   source = "github.com/robot0001/urbanpetr-foundation//modules/s3_bucket?ref=v1.1.1"
 
-  bucket_name   = "urbanpetr-admin"
-  force_destroy = false
+  bucket_name   = local.bucket_name
+  force_destroy = var.environment == "stage"
   custom_tags   = local.common_tags
 }
 
-# CloudFront distribution serving admin.urbanpetr.com
 module "cdn" {
   source = "github.com/robot0001/urbanpetr-foundation//modules/cloudfront_website?ref=v1.2.0"
 
   project_name        = "urbanpetr_admin"
-  environment         = "prod"
+  environment         = var.environment
   bucket_domain_name  = module.bucket.bucket_regional_domain_name
   aliases             = [local.subdomain]
   acm_certificate_arn = data.aws_acm_certificate.wildcard.arn
   custom_tags         = local.common_tags
 }
 
-# Allow CloudFront OAC to read the admin S3 bucket
 data "aws_iam_policy_document" "bucket_policy" {
   statement {
     actions   = ["s3:GetObject"]
@@ -92,7 +100,6 @@ resource "aws_s3_bucket_policy" "admin" {
   policy = data.aws_iam_policy_document.bucket_policy.json
 }
 
-# DNS: admin.urbanpetr.com → CloudFront
 resource "aws_route53_record" "admin" {
   zone_id = data.terraform_remote_state.foundation.outputs.prod_zone_id
   name    = local.subdomain
