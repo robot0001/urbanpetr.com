@@ -65,6 +65,7 @@ module "cdn" {
   bucket_domain_name  = module.bucket.bucket_regional_domain_name
   aliases             = [local.subdomain]
   acm_certificate_arn = data.aws_acm_certificate.wildcard.arn
+  custom_tags         = local.common_tags
 }
 
 # Allow CloudFront OAC to read the admin S3 bucket
