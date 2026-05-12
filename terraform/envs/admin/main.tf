@@ -67,13 +67,14 @@ module "bucket" {
 }
 
 module "cdn" {
-  source = "github.com/robot0001/urbanpetr-foundation//modules/cloudfront_website?ref=v1.2.0"
+  source = "github.com/robot0001/urbanpetr-foundation//modules/cloudfront_website?ref=v1.3.2"
 
   project_name        = "urbanpetr_admin"
   environment         = var.environment
   bucket_domain_name  = module.bucket.bucket_regional_domain_name
   aliases             = [local.subdomain]
   acm_certificate_arn = data.aws_acm_certificate.wildcard.arn
+  spa_routing         = true
   custom_tags         = local.common_tags
 }
 
