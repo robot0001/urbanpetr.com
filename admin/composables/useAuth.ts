@@ -61,17 +61,30 @@ export function useAuth() {
     const verifier = sessionStorage.getItem(VERIFIER_KEY)
     if (!verifier) throw new Error('PKCE verifier missing — try signing in again')
     const redirectUri = `${window.location.origin}/callback`
-    console.log('[auth] exchangeCode', { code, redirectUri, verifierLen: verifier.length, verifierStart: verifier.slice(0, 8) })
-    const res = await $fetch<{ access_token: string; id_token?: string }>('/api/auth/token', {
+
+    const res = await fetch(`https://${domain}/oauth2/token`, {
       method: 'POST',
-      body: { code, code_verifier: verifier, redirect_uri: redirectUri },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        client_id: clientId,
+        code,
+        redirect_uri: redirectUri,
+        code_verifier: verifier,
+      }).toString(),
     })
+
+    const data = await res.json()
+    if (!res.ok) {
+      throw new Error(data.error_description ?? data.error ?? 'Token exchange failed')
+    }
+
     sessionStorage.removeItem(VERIFIER_KEY)
-    sessionStorage.setItem(TOKEN_KEY, res.access_token)
-    token.value = res.access_token
+    sessionStorage.setItem(TOKEN_KEY, data.access_token)
+    token.value = data.access_token
     // email lives in the ID token; store it separately so we don't keep the ID token around
-    if (res.id_token) {
-      const email = (decodeJwtPayload(res.id_token)?.email as string) ?? null
+    if (data.id_token) {
+      const email = (decodeJwtPayload(data.id_token)?.email as string) ?? null
       if (email) sessionStorage.setItem(EMAIL_KEY, email)
       userEmail.value = email
     }
