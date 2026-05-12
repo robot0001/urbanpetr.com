@@ -158,13 +158,13 @@ jobs:
       - name: Generate website
         run: npm run generate
         env:
-          NUXT_PUBLIC_API_BASE: https://api.urbanpetr.com
+          NUXT_PUBLIC_API_BASE: https://api-stage42.urbanpetr.com
 
       - name: Generate admin
         working-directory: admin
         run: npm run generate
         env:
-          NUXT_PUBLIC_API_BASE: https://api.urbanpetr.com
+          NUXT_PUBLIC_API_BASE: https://api-stage42.urbanpetr.com
           NUXT_PUBLIC_COGNITO_DOMAIN: ${{ secrets.COGNITO_DOMAIN_STAGING }}
           NUXT_PUBLIC_COGNITO_CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID_STAGING }}
 
