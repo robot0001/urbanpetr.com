@@ -49,9 +49,10 @@ export function useAuth() {
       response_type: 'code',
       client_id: clientId,
       redirect_uri: `${window.location.origin}/callback`,
-      scope: 'email openid profile',
+      scope: 'email openid',
       code_challenge: challenge,
       code_challenge_method: 'S256',
+      identity_provider: 'Google',
     })
     window.location.href = `https://${domain}/oauth2/authorize?${params}`
   }
@@ -59,20 +60,12 @@ export function useAuth() {
   async function exchangeCode(code: string): Promise<void> {
     const verifier = sessionStorage.getItem(VERIFIER_KEY)
     if (!verifier) throw new Error('PKCE verifier missing — try signing in again')
-    const res = await $fetch<{ access_token: string; id_token?: string }>(
-      `https://${domain}/oauth2/token`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          grant_type: 'authorization_code',
-          client_id: clientId,
-          code,
-          redirect_uri: `${window.location.origin}/callback`,
-          code_verifier: verifier,
-        }).toString(),
-      }
-    )
+    const redirectUri = `${window.location.origin}/callback`
+    console.log('[auth] exchangeCode', { code, redirectUri, verifierLen: verifier.length, verifierStart: verifier.slice(0, 8) })
+    const res = await $fetch<{ access_token: string; id_token?: string }>('/api/auth/token', {
+      method: 'POST',
+      body: { code, code_verifier: verifier, redirect_uri: redirectUri },
+    })
     sessionStorage.removeItem(VERIFIER_KEY)
     sessionStorage.setItem(TOKEN_KEY, res.access_token)
     token.value = res.access_token
