@@ -67,7 +67,7 @@ module "bucket" {
 }
 
 module "cdn" {
-  source = "github.com/robot0001/urbanpetr-foundation//modules/cloudfront_website?ref=v1.3.2"
+  source = "github.com/robot0001/urbanpetr-foundation//modules/cloudfront_website?ref=v1.3.3"
 
   project_name        = "urbanpetr_admin"
   environment         = var.environment
