@@ -4,11 +4,11 @@ const { exchangeCode } = useAuth()
 
 const error = ref<string | null>(null)
 
-// Capture during component setup — app:mounted fires after setup but before
-// onMounted, and Nuxt may call router.replace(prerenderedRoute) there which
-// strips the query string from window.location before onMounted runs.
-const capturedSearch = process.client ? window.location.search : ''
-if (process.client) console.log('[callback] setup: href=', window.location.href, 'search=', capturedSearch)
+// The inline <head> script in nuxt.config saves location.search to sessionStorage
+// before Nuxt's router plugin can strip the query string during prerendered
+// page hydration. Read it here and clear it immediately.
+const capturedSearch = process.client ? (sessionStorage.getItem('__qs__') ?? '') : ''
+if (process.client) sessionStorage.removeItem('__qs__')
 
 onMounted(async () => {
   const params = new URLSearchParams(capturedSearch)
