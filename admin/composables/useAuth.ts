@@ -62,6 +62,8 @@ export function useAuth() {
     if (!verifier) throw new Error('PKCE verifier missing — try signing in again')
     const redirectUri = `${window.location.origin}/callback`
 
+    console.log('[auth] exchangeCode: domain=%s clientId=%s redirectUri=%s', domain, clientId, redirectUri)
+
     const res = await fetch(`https://${domain}/oauth2/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -75,6 +77,7 @@ export function useAuth() {
     })
 
     const data = await res.json()
+    console.log('[auth] token response: status=%d body=%o', res.status, data)
     if (!res.ok) {
       throw new Error(data.error_description ?? data.error ?? 'Token exchange failed')
     }

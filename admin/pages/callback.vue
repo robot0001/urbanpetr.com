@@ -23,7 +23,9 @@ onMounted(async () => {
     await exchangeCode(code)
     await router.replace('/')
   } catch (e: any) {
-    error.value = e?.message ?? 'Token exchange failed — please try again.'
+    const msg = e?.message ?? 'Token exchange failed — please try again.'
+    console.error('[callback] token exchange failed:', e)
+    error.value = msg
   }
 })
 </script>
