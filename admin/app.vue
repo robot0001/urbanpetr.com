@@ -1,11 +1,14 @@
 <script setup lang="ts">
+const route = useRoute()
 const youtubeOpen = ref(false)
-const { isAuthenticated, userEmail, login, logout } = useAuth()
+const { userEmail, logout } = useAuth()
+
+const showNav = computed(() => route.path !== '/login' && route.path !== '/callback')
 </script>
 
 <template lang="pug">
 div(class="min-h-screen bg-gray-950 text-gray-100")
-  nav(class="border-b border-white/10 px-6 py-4 flex items-center gap-6")
+  nav(v-if="showNav" class="border-b border-white/10 px-6 py-4 flex items-center gap-6")
     span(class="font-semibold text-orange-400") Admin
     div(class="relative")
       div(
@@ -36,17 +39,11 @@ div(class="min-h-screen bg-gray-950 text-gray-100")
           active-class="!text-white font-medium"
         ) All
     div(class="ml-auto flex items-center gap-4")
-      template(v-if="isAuthenticated")
-        span(class="text-sm text-gray-500") {{ userEmail }}
-        button(
-          class="text-sm text-gray-400 hover:text-gray-100"
-          @click="logout"
-        ) Sign out
-      template(v-else)
-        button(
-          class="text-sm text-gray-400 hover:text-gray-100"
-          @click="login"
-        ) Sign in
+      span(class="text-sm text-gray-500") {{ userEmail }}
+      button(
+        class="text-sm text-gray-400 hover:text-gray-100"
+        @click="logout"
+      ) Sign out
   main(class="px-6 py-8 max-w-5xl mx-auto")
     NuxtPage
 </template>

@@ -54,17 +54,13 @@ export function useAuth() {
       code_challenge_method: 'S256',
       identity_provider: 'Google',
     })
-    const authorizeUrl = `https://${domain}/oauth2/authorize?${params}`
-    console.log('[auth] login: redirect_uri=%s authorizeUrl=%s', `${window.location.origin}/callback`, authorizeUrl)
-    window.location.href = authorizeUrl
+    window.location.href = `https://${domain}/oauth2/authorize?${params}`
   }
 
   async function exchangeCode(code: string): Promise<void> {
     const verifier = sessionStorage.getItem(VERIFIER_KEY)
     if (!verifier) throw new Error('PKCE verifier missing — try signing in again')
     const redirectUri = `${window.location.origin}/callback`
-
-    console.log('[auth] exchangeCode: domain=%s clientId=%s redirectUri=%s', domain, clientId, redirectUri)
 
     const res = await fetch(`https://${domain}/oauth2/token`, {
       method: 'POST',
@@ -79,7 +75,6 @@ export function useAuth() {
     })
 
     const data = await res.json()
-    console.log('[auth] token response: status=%d body=%o', res.status, data)
     if (!res.ok) {
       throw new Error(data.error_description ?? data.error ?? 'Token exchange failed')
     }
