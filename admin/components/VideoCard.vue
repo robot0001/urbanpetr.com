@@ -8,6 +8,7 @@ const emit = defineEmits<{
 }>()
 
 const { public: { apiBase } } = useRuntimeConfig()
+const { token, login } = useAuth()
 const toggling = ref(false)
 
 async function toggle() {
@@ -15,8 +16,13 @@ async function toggle() {
   toggling.value = true
   try {
     const action = props.item.active ? 'deactivate' : 'activate'
-    await $fetch(`${apiBase}/v1/history/youtube/${props.item.uuid}/${action}`, { method: 'POST' })
+    await $fetch(`${apiBase}/v1/history/youtube/${props.item.uuid}/${action}`, {
+      method: 'POST',
+      headers: token.value ? { Authorization: `Bearer ${token.value}` } : {},
+    })
     emit('toggled', props.item.uuid, !props.item.active)
+  } catch (e: any) {
+    if (e?.response?.status === 401) login()
   } finally {
     toggling.value = false
   }
@@ -27,8 +33,13 @@ const enriching = ref(false)
 async function enrich() {
   enriching.value = true
   try {
-    await $fetch(`${apiBase}/v1/history/youtube/${props.item.uuid}/enrich`, { method: 'POST' })
+    await $fetch(`${apiBase}/v1/history/youtube/${props.item.uuid}/enrich`, {
+      method: 'POST',
+      headers: token.value ? { Authorization: `Bearer ${token.value}` } : {},
+    })
     emit('enriched', props.item.uuid)
+  } catch (e: any) {
+    if (e?.response?.status === 401) login()
   } finally {
     enriching.value = false
   }
