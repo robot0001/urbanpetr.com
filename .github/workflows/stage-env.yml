@@ -45,10 +45,14 @@ jobs:
         with:
           terraform_version: 1.9.8
 
-      # ── Public website ────────────────────────────────────────────────────
+      # ── Terraform ─────────────────────────────────────────────────────────
 
       - name: Terraform init (website)
         working-directory: terraform/envs/prod
+        run: terraform init -input=false
+
+      - name: Terraform init (admin)
+        working-directory: terraform/envs/admin
         run: terraform init -input=false
 
       - name: Select/create workspace (website)
@@ -57,15 +61,11 @@ jobs:
           terraform workspace select stage-pr-${{ github.event.number }} \
             || terraform workspace new stage-pr-${{ github.event.number }}
 
-      - name: Terraform plan (website)
-        working-directory: terraform/envs/prod
+      - name: Select/create workspace (admin)
+        working-directory: terraform/envs/admin
         run: |
-          terraform plan \
-            -var-file="prod.tfvars" \
-            -var="environment=stage" \
-            -var="stage_subdomain=stage${{ github.event.number }}" \
-            -var="s3_bucket_name=${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }}" \
-            -input=false -no-color
+          terraform workspace select admin-stage-pr-${{ github.event.number }} \
+            || terraform workspace new admin-stage-pr-${{ github.event.number }}
 
       - name: Terraform apply (website)
         working-directory: terraform/envs/prod
@@ -77,52 +77,15 @@ jobs:
             -var="s3_bucket_name=${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }}" \
             -auto-approve -input=false
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Generate website static site
-        run: npm run generate
-        env:
-          NUXT_PUBLIC_API_BASE: https://api.urbanpetr.com
-
-      - name: Sync website to S3
-        run: |
-          aws s3 sync .output/public/ s3://${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }} \
-            --delete \
-            --cache-control "max-age=60"
-
-      - name: Invalidate website CloudFront cache
-        working-directory: terraform/envs/prod
-        run: |
-          aws cloudfront create-invalidation \
-            --distribution-id $(terraform output -raw cloudfront_distribution_id) \
-            --paths "/*"
-
-      # ── Admin ─────────────────────────────────────────────────────────────
-
-      - name: Terraform init (admin)
-        working-directory: terraform/envs/admin
-        run: terraform init -input=false
-
-      - name: Select/create workspace (admin)
-        working-directory: terraform/envs/admin
-        run: |
-          terraform workspace select admin-stage-pr-${{ github.event.number }} \
-            || terraform workspace new admin-stage-pr-${{ github.event.number }}
-
-      - name: Terraform apply (admin stage)
+      - name: Terraform apply (admin)
         working-directory: terraform/envs/admin
         run: |
           terraform apply \
             -var="environment=stage" \
             -var="stage_number=${{ github.event.number }}" \
             -auto-approve -input=false
+
+      # ── Cognito ───────────────────────────────────────────────────────────
 
       - name: Configure staging AWS credentials (Cognito)
         uses: aws-actions/configure-aws-credentials@v6.1.0
@@ -174,18 +137,30 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_PROD }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Setup Node.js for admin
+      # ── Build ─────────────────────────────────────────────────────────────
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: 'npm'
-          cache-dependency-path: admin/package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            admin/package-lock.json
+
+      - name: Install website dependencies
+        run: npm ci
 
       - name: Install admin dependencies
         working-directory: admin
         run: npm ci
 
-      - name: Generate admin static site
+      - name: Generate website
+        run: npm run generate
+        env:
+          NUXT_PUBLIC_API_BASE: https://api.urbanpetr.com
+
+      - name: Generate admin
         working-directory: admin
         run: npm run generate
         env:
@@ -193,12 +168,27 @@ jobs:
           NUXT_PUBLIC_COGNITO_DOMAIN: ${{ secrets.COGNITO_DOMAIN_STAGING }}
           NUXT_PUBLIC_COGNITO_CLIENT_ID: ${{ secrets.COGNITO_CLIENT_ID_STAGING }}
 
+      # ── Deploy ────────────────────────────────────────────────────────────
+
+      - name: Sync website to S3
+        run: |
+          aws s3 sync .output/public/ s3://${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }} \
+            --delete \
+            --cache-control "max-age=60"
+
       - name: Sync admin to S3
         run: |
           aws s3 sync admin/.output/public/ \
             s3://${{ env.ADMIN_S3_BUCKET_PREFIX }}${{ github.event.number }} \
             --delete \
             --cache-control "max-age=60"
+
+      - name: Invalidate website CloudFront cache
+        working-directory: terraform/envs/prod
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id $(terraform output -raw cloudfront_distribution_id) \
+            --paths "/*"
 
       - name: Invalidate admin CloudFront cache
         working-directory: terraform/envs/admin
@@ -236,11 +226,17 @@ jobs:
         with:
           terraform_version: 1.9.8
 
-      # ── Public website ────────────────────────────────────────────────────
+      # ── Terraform init ────────────────────────────────────────────────────
 
       - name: Terraform init (website)
         working-directory: terraform/envs/prod
         run: terraform init -input=false
+
+      - name: Terraform init (admin)
+        working-directory: terraform/envs/admin
+        run: terraform init -input=false
+
+      # ── Select workspaces ─────────────────────────────────────────────────
 
       - name: Select website workspace if it exists
         id: select_ws
@@ -252,30 +248,6 @@ jobs:
             echo "no_workspace=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Terraform destroy (website)
-        if: steps.select_ws.outputs.no_workspace != 'true'
-        working-directory: terraform/envs/prod
-        run: |
-          terraform destroy \
-            -var-file="prod.tfvars" \
-            -var="environment=stage" \
-            -var="stage_subdomain=stage${{ github.event.number }}" \
-            -var="s3_bucket_name=${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }}" \
-            -auto-approve -input=false
-
-      - name: Delete website workspace
-        if: steps.select_ws.outputs.no_workspace != 'true'
-        working-directory: terraform/envs/prod
-        run: |
-          terraform workspace select default
-          terraform workspace delete -force stage-pr-${{ github.event.number }}
-
-      # ── Admin ─────────────────────────────────────────────────────────────
-
-      - name: Terraform init (admin)
-        working-directory: terraform/envs/admin
-        run: terraform init -input=false
-
       - name: Select admin workspace if it exists
         id: select_admin_ws
         working-directory: terraform/envs/admin
@@ -285,6 +257,8 @@ jobs:
           else
             echo "no_workspace=true" >> "$GITHUB_OUTPUT"
           fi
+
+      # ── Cognito ───────────────────────────────────────────────────────────
 
       - name: Configure staging AWS credentials (Cognito)
         if: steps.select_admin_ws.outputs.no_workspace != 'true'
@@ -339,7 +313,20 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_PROD }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Terraform destroy (admin stage)
+      # ── Destroy ───────────────────────────────────────────────────────────
+
+      - name: Terraform destroy (website)
+        if: steps.select_ws.outputs.no_workspace != 'true'
+        working-directory: terraform/envs/prod
+        run: |
+          terraform destroy \
+            -var-file="prod.tfvars" \
+            -var="environment=stage" \
+            -var="stage_subdomain=stage${{ github.event.number }}" \
+            -var="s3_bucket_name=${{ env.S3_BUCKET_PREFIX }}${{ github.event.number }}" \
+            -auto-approve -input=false
+
+      - name: Terraform destroy (admin)
         if: steps.select_admin_ws.outputs.no_workspace != 'true'
         working-directory: terraform/envs/admin
         run: |
@@ -347,6 +334,13 @@ jobs:
             -var="environment=stage" \
             -var="stage_number=${{ github.event.number }}" \
             -auto-approve -input=false
+
+      - name: Delete website workspace
+        if: steps.select_ws.outputs.no_workspace != 'true'
+        working-directory: terraform/envs/prod
+        run: |
+          terraform workspace select default
+          terraform workspace delete -force stage-pr-${{ github.event.number }}
 
       - name: Delete admin workspace
         if: steps.select_admin_ws.outputs.no_workspace != 'true'
