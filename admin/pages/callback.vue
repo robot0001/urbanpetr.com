@@ -4,8 +4,14 @@ const { exchangeCode } = useAuth()
 
 const error = ref<string | null>(null)
 
+// Capture during component setup — app:mounted fires after setup but before
+// onMounted, and Nuxt may call router.replace(prerenderedRoute) there which
+// strips the query string from window.location before onMounted runs.
+const capturedSearch = process.client ? window.location.search : ''
+if (process.client) console.log('[callback] setup: href=', window.location.href, 'search=', capturedSearch)
+
 onMounted(async () => {
-  const params = new URLSearchParams(window.location.search)
+  const params = new URLSearchParams(capturedSearch)
   const code = params.get('code') ?? undefined
   const errorParam = params.get('error') ?? undefined
 
