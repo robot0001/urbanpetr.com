@@ -124,6 +124,12 @@ jobs:
             -var="stage_number=${{ github.event.number }}" \
             -auto-approve -input=false
 
+      - name: Configure staging AWS credentials (Cognito)
+        uses: aws-actions/configure-aws-credentials@v6.1.0
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_COGNITO_STAGING }}
+          aws-region: eu-central-1
+
       - name: Register admin Cognito callback URL
         env:
           POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID_STAGING }}
@@ -161,6 +167,12 @@ jobs:
           aws cognito-idp update-user-pool-client \
             --region "$AWS_REGION" \
             --cli-input-json file:///tmp/cognito-update.json
+
+      - name: Restore prod AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.1.0
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_PROD }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Node.js for admin
         uses: actions/setup-node@v4
@@ -274,6 +286,13 @@ jobs:
             echo "no_workspace=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Configure staging AWS credentials (Cognito)
+        if: steps.select_admin_ws.outputs.no_workspace != 'true'
+        uses: aws-actions/configure-aws-credentials@v6.1.0
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_COGNITO_STAGING }}
+          aws-region: eu-central-1
+
       - name: Deregister admin Cognito callback URL
         if: steps.select_admin_ws.outputs.no_workspace != 'true'
         env:
@@ -312,6 +331,13 @@ jobs:
           aws cognito-idp update-user-pool-client \
             --region "$AWS_REGION" \
             --cli-input-json file:///tmp/cognito-update.json
+
+      - name: Restore prod AWS credentials
+        if: steps.select_admin_ws.outputs.no_workspace != 'true'
+        uses: aws-actions/configure-aws-credentials@v6.1.0
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_PROD }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Terraform destroy (admin stage)
         if: steps.select_admin_ws.outputs.no_workspace != 'true'
