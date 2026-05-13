@@ -20,7 +20,7 @@ export default defineNuxtConfig({
   css: ['~/assets/css/global.css', 'primeicons/primeicons.css'],
   primevue: {
     components: {
-      include: ['Button', 'Card', 'Tag', 'Skeleton', 'Paginator', 'Menu', 'Message', 'ProgressSpinner']
+      include: ['Button', 'Card', 'Tag', 'Skeleton', 'Paginator', 'Menu', 'Message', 'ProgressSpinner', 'Dialog', 'Textarea', 'InputChips']
     },
     options: {
       ripple: true,
