@@ -1,17 +1,9 @@
 <script setup lang="ts">
-import type { HistoryItem } from '~/types/youtube'
-
 const { public: { apiBase } } = useRuntimeConfig()
 
 const { data: health, status: fetchStatus } = useFetch<{ status: string }>(`${apiBase}/health`, {
   server: false
 })
-
-const { data: videosData } = useFetch<{ items: HistoryItem[] }>(`${apiBase}/v1/history/youtube`, {
-  server: false
-})
-
-const videos = computed(() => videosData.value?.items ?? [])
 </script>
 
 <template lang="pug">
@@ -44,18 +36,5 @@ div(class="flex flex-col lg:flex-row gap-6")
           :class="health?.status === 'ok' ? 'text-green-400' : fetchStatus === 'pending' ? 'text-gray-500' : 'text-red-400'"
         ) {{ health?.status === 'ok' ? '● ok' : fetchStatus === 'pending' ? '○ …' : '● unavailable' }}
 
-    //- Variant 1: comment pull-quote + side thumbnail
-    div(class="flex flex-col gap-1")
-      p(class="text-xs text-gray-600 uppercase tracking-wider font-medium px-1") ↓ variant 1
-      ActiveVideosV1(:items="videos")
-
-    //- Variant 2: comment only, no thumbnail — pure text
-    div(class="flex flex-col gap-1")
-      p(class="text-xs text-gray-600 uppercase tracking-wider font-medium px-1") ↓ variant 2
-      ActiveVideosV2(:items="videos")
-
-    //- Variant 3: comment pull-quote + full-width thumbnail below
-    div(class="flex flex-col gap-1")
-      p(class="text-xs text-gray-600 uppercase tracking-wider font-medium px-1") ↓ variant 3
-      ActiveVideosV3(:items="videos")
+    ActiveVideos
 </template>

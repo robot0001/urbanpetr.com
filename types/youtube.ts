@@ -26,3 +26,10 @@ export interface HistoryItem {
   custom_tags: string[]
   video: Video
 }
+
+export interface Pagination {
+  pages_total: number
+  items_total: number
+  page: number
+  items_per_page: number
+}
