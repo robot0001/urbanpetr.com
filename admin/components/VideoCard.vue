@@ -104,7 +104,8 @@ async function confirmActivate() {
       })
     }
     showActivateDialog.value = false
-    if (!editing.value) emit('toggled', props.item.uuid, true)
+    if (editing.value) emit('enriched', props.item.uuid)
+    else emit('toggled', props.item.uuid, true)
   } catch (e: any) {
     if (e?.response?.status === 401) login()
   } finally {
