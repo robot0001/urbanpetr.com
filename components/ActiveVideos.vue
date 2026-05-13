@@ -25,23 +25,22 @@ Panel(header="Now Watching")
     :key="item.uuid"
     class="mb-6 last:mb-0 pb-6 last:pb-0 border-b last:border-b-0 border-white/10"
   )
-    div(
-      v-if="item.custom_tags.length"
-      class="flex flex-wrap gap-1.5 mb-2"
-    )
-      span(
-        v-for="tag in item.custom_tags"
-        :key="tag"
-        class="text-xs px-2 py-0.5 rounded-full border"
-        style="border-color: var(--p-primary-color); color: var(--p-primary-300); background: color-mix(in srgb, var(--p-primary-color) 10%, transparent)"
-      ) {{ tag }}
-
     a(:href="item.video.url" target="_blank" rel="noopener" class="block group")
-      p(
-        v-if="item.comment"
-        class="text-sm leading-relaxed italic mb-3"
-        style="color: var(--p-primary-200)"
-      ) "{{ item.comment }}"
+      div(
+        v-if="item.comment || item.custom_tags.length"
+        class="flex flex-wrap items-baseline gap-x-1.5 gap-y-1 mb-3"
+      )
+        span(
+          v-for="tag in item.custom_tags"
+          :key="tag"
+          class="text-xs px-2 py-0.5 rounded-full border flex-shrink-0"
+          style="border-color: var(--p-primary-color); color: var(--p-primary-300); background: color-mix(in srgb, var(--p-primary-color) 10%, transparent)"
+        ) {{ tag }}
+        span(
+          v-if="item.comment"
+          class="text-sm leading-relaxed italic"
+          style="color: var(--p-primary-200)"
+        ) "{{ item.comment }}"
 
       div(class="flex gap-3 items-start")
         img(
