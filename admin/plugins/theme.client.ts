@@ -5,7 +5,5 @@ export default defineNuxtPlugin(() => {
     document.documentElement.classList.remove('dark')
   }
   const saved = localStorage.getItem('theme_palette') as PaletteName | null
-  if (saved && palettes[saved]) {
-    applyPalette(saved)
-  }
+  applyPalette((saved && palettes[saved]) ? saved : 'orange')
 })
