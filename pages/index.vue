@@ -1,8 +1,17 @@
 <script setup lang="ts">
+import type { HistoryItem } from '~/types/youtube'
+
 const { public: { apiBase } } = useRuntimeConfig()
+
 const { data: health, status: fetchStatus } = useFetch<{ status: string }>(`${apiBase}/health`, {
   server: false
 })
+
+const { data: videosData } = useFetch<{ items: HistoryItem[] }>(`${apiBase}/v1/history/youtube`, {
+  server: false
+})
+
+const videos = computed(() => videosData.value?.items ?? [])
 </script>
 
 <template lang="pug">
@@ -20,9 +29,10 @@ div(class="flex flex-col lg:flex-row gap-6")
           | &nbsp;has become a core part of how I work. Less about shortcuts, more about thinking differently about the whole development loop.
         p
           strong Open Claw
-          |  and 
+          |  and
           strong hermes-agent
           | &nbsp;are the kind of things you can't stop thinking about.
+
   div(class="flex flex-col gap-6 lg:w-1/3")
     Panel(header="Links")
       ul
@@ -33,4 +43,19 @@ div(class="flex flex-col lg:flex-row gap-6")
         span(
           :class="health?.status === 'ok' ? 'text-green-400' : fetchStatus === 'pending' ? 'text-gray-500' : 'text-red-400'"
         ) {{ health?.status === 'ok' ? '● ok' : fetchStatus === 'pending' ? '○ …' : '● unavailable' }}
+
+    //- Variant 1: comment as italic pull-quote, thumbnail + title below
+    div(class="flex flex-col gap-1")
+      p(class="text-xs text-gray-600 uppercase tracking-wider font-medium px-1") ↓ variant 1
+      ActiveVideosV1(:items="videos")
+
+    //- Variant 2: thumbnail-first card, comment in accent block
+    div(class="flex flex-col gap-1")
+      p(class="text-xs text-gray-600 uppercase tracking-wider font-medium px-1") ↓ variant 2
+      ActiveVideosV2(:items="videos")
+
+    //- Variant 3: compact list, comment as primary label
+    div(class="flex flex-col gap-1")
+      p(class="text-xs text-gray-600 uppercase tracking-wider font-medium px-1") ↓ variant 3
+      ActiveVideosV3(:items="videos")
 </template>
