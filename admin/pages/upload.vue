@@ -55,13 +55,13 @@ div
     template(#content)
       div(class="flex flex-col gap-4")
         p(class="text-sm" :style="{ color: 'var(--p-text-muted-color)' }")
-          | Upload a Google Takeout YouTube watch history JSON file. Duplicate entries are ignored automatically.
+          | Upload a zipped Google Takeout YouTube watch history file. Duplicate entries are ignored automatically.
 
         div(class="flex items-center gap-3 flex-wrap")
           input(
             ref="fileInput"
             type="file"
-            accept=".json"
+            accept=".zip"
             class="hidden"
             @change="onFileChange"
           )
