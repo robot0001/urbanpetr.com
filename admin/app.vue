@@ -12,6 +12,8 @@ const youtubeMenu = ref()
 const youtubeItems = computed(() => [
   { label: 'Active', icon: 'pi pi-play', command: () => router.push('/'), class: route.path === '/' ? 'nav-item-active' : '' },
   { label: 'All', icon: 'pi pi-list', command: () => router.push('/all'), class: route.path === '/all' ? 'nav-item-active' : '' },
+  { separator: true },
+  { label: 'Upload', icon: 'pi pi-upload', command: () => router.push('/upload'), class: route.path === '/upload' ? 'nav-item-active' : '' },
 ])
 
 const paletteMenu = ref()
