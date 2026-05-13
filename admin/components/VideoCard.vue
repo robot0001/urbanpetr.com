@@ -61,7 +61,6 @@ async function startActivate() {
         method: 'POST',
         headers: token.value ? { Authorization: `Bearer ${token.value}` } : {},
       })
-      emit('enriched', props.item.uuid)
     }
   } catch (e: any) {
     if (e?.response?.status === 401) { activating.value = false; login(); return }
@@ -73,6 +72,7 @@ async function startActivate() {
   activateCustomTags.value = []
   showActivateDialog.value = true
 }
+
 
 async function confirmActivate() {
   confirming.value = true
