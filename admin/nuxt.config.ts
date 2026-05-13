@@ -4,6 +4,11 @@ import { definePreset } from '@primeuix/themes'
 const Theme = definePreset(Aura, {})
 
 export default defineNuxtConfig({
+  ssr: false,
+  // viteEnvironmentApi ensures NUXT_VITE_NODE_OPTIONS.socketPath is set even
+  // when ssr:false — without it the server-side Vite instance is never created
+  // so the IPC socket path never gets configured and renderRoute crashes.
+  experimental: { viteEnvironmentApi: true },
   runtimeConfig: {
     public: {
       apiBase: 'https://api.urbanpetr.com',
@@ -46,14 +51,6 @@ export default defineNuxtConfig({
       charset: 'utf-8',
       viewport: 'width=device-width, initial-scale=1.0',
       title: 'Admin — UrbanPetr',
-      // Capture the full URL before Nuxt's router plugin strips the query string
-      // during hydration of prerendered pages (e.g. /callback?code=...).
-      script: [{ innerHTML: `if(location.search)sessionStorage.setItem('__qs__',location.search)`, tagPriority: 'critical' }],
     }
-  },
-  nitro: {
-    prerender: {
-      routes: ['/login', '/auth-callback'],
-    },
   },
 })
