@@ -29,6 +29,16 @@ div
       @click="toggleSort"
     )
 
+  Paginator(
+    v-if="pagination && pagination.pages_total > 1"
+    class="mb-4 !bg-transparent"
+    :rows="itemsPerPage"
+    :totalRecords="pagination.items_total"
+    :first="(page - 1) * itemsPerPage"
+    :rowsPerPageOptions="[10, 25, 50, 100]"
+    @page="onPage"
+  )
+
   div(v-if="error" class="mb-4")
     Message(severity="error" :closable="false") {{ error }}
 
