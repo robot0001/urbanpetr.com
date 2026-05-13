@@ -54,9 +54,9 @@ function formatCount(n: number | null): string | null {
 </script>
 
 <template lang="pug">
-div(:class="['flex gap-4 p-4 rounded-lg border transition-colors', item.active ? 'bg-gray-900 border-green-800' : 'bg-gray-900/30 border-gray-800/50']")
+div(:class="['flex flex-col sm:flex-row gap-4 p-4 rounded-lg border transition-colors', item.active ? 'bg-gray-900 border-green-800' : 'bg-gray-900/30 border-gray-800/50']")
   a(:href="item.video.url" target="_blank" rel="noopener" class="shrink-0")
-    div(class="w-32 aspect-video rounded overflow-hidden bg-gray-800 flex items-center justify-center")
+    div(class="w-full sm:w-32 aspect-video rounded overflow-hidden bg-gray-800 flex items-center justify-center")
       img(
         v-if="item.video.thumbnail_url"
         :src="item.video.thumbnail_url"
@@ -105,10 +105,11 @@ div(:class="['flex gap-4 p-4 rounded-lg border transition-colors', item.active ?
 
     div(class="flex items-center gap-2 mt-auto pt-1 text-xs text-gray-500 flex-wrap")
       span(v-if="item.video.duration") {{ item.video.duration.formatted }}
-      span(
-        :class="item.video.type === 'short' ? 'bg-purple-900/60 text-purple-300' : 'bg-blue-900/60 text-blue-300'"
-        class="px-1.5 py-0.5 rounded"
-      ) {{ item.video.type }}
+      Tag(
+        :value="item.video.type"
+        :severity="item.video.type === 'short' ? 'secondary' : 'info'"
+        class="!text-xs !py-0.5 !px-1.5"
+      )
       template(v-if="formatCount(item.video.view_count)")
         span · {{ formatCount(item.video.view_count) }} views
       template(v-if="formatCount(item.video.like_count)")

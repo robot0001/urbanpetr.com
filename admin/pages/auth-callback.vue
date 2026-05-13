@@ -31,11 +31,12 @@ onMounted(async () => {
 </script>
 
 <template lang="pug">
-div(class="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center")
-  div(class="text-center")
+div(class="min-h-screen bg-gray-950 flex items-center justify-center p-4")
+  div(class="text-center space-y-4")
     template(v-if="error")
-      p(class="text-red-400 mb-4") {{ error }}
-      NuxtLink(to="/" class="text-orange-400 hover:underline") Back to home
+      Message(severity="error" :closable="false") {{ error }}
+      Button(label="Back to home" text severity="secondary" @click="$router.push('/')")
     template(v-else)
-      p(class="text-gray-400") Signing in…
+      ProgressSpinner(strokeWidth="4" style="width: 2.5rem; height: 2.5rem")
+      p(class="text-gray-400 text-sm mt-2") Signing in…
 </template>
