@@ -30,7 +30,7 @@ onMounted(async () => {
     await router.replace('/')
   } catch (e: any) {
     const msg = e?.message ?? 'Token exchange failed — please try again.'
-    console.error('[callback] token exchange failed:', e)
+    console.error('[auth-callback] token exchange failed:', e)
     error.value = msg
   }
 })

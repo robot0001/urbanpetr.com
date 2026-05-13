@@ -53,7 +53,7 @@ export default defineNuxtConfig({
   },
   nitro: {
     prerender: {
-      routes: ['/login', '/callback'],
+      routes: ['/login', '/auth-callback'],
     },
   },
 })

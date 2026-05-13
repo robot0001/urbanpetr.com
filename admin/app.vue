@@ -3,7 +3,7 @@ const route = useRoute()
 const youtubeOpen = ref(false)
 const { userEmail, logout } = useAuth()
 
-const showNav = computed(() => route.path !== '/login' && route.path !== '/callback')
+const showNav = computed(() => route.path !== '/login' && route.path !== '/auth-callback')
 </script>
 
 <template lang="pug">
