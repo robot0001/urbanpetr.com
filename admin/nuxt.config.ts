@@ -5,6 +5,10 @@ const Theme = definePreset(Aura, {})
 
 export default defineNuxtConfig({
   ssr: false,
+  // viteEnvironmentApi ensures NUXT_VITE_NODE_OPTIONS.socketPath is set even
+  // when ssr:false — without it the server-side Vite instance is never created
+  // so the IPC socket path never gets configured and renderRoute crashes.
+  experimental: { viteEnvironmentApi: true },
   runtimeConfig: {
     public: {
       apiBase: 'https://api.urbanpetr.com',
