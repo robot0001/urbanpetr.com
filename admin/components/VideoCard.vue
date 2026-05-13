@@ -51,68 +51,74 @@ function formatCount(n: number | null): string | null {
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`
   return String(n)
 }
+
 </script>
 
 <template lang="pug">
-div(:class="['flex gap-4 p-4 rounded-lg border transition-colors', item.active ? 'bg-gray-900 border-green-800' : 'bg-gray-900/30 border-gray-800/50']")
-  a(:href="item.video.url" target="_blank" rel="noopener" class="shrink-0")
-    div(class="w-32 aspect-video rounded overflow-hidden bg-gray-800 flex items-center justify-center")
-      img(
-        v-if="item.video.thumbnail_url"
-        :src="item.video.thumbnail_url"
-        :alt="item.video.title"
-        class="w-full h-full object-cover"
-      )
-      i(v-else class="pi pi-youtube text-2xl text-gray-600")
-
-  div(class="flex flex-col flex-1 min-w-0 gap-1")
-    div(class="flex items-start justify-between gap-4")
-      div(class="flex-1 min-w-0")
-        a(
-          :href="item.video.url"
-          target="_blank"
-          rel="noopener"
-          class="font-medium text-gray-100 hover:text-orange-400 line-clamp-2 leading-snug block"
-        ) {{ item.video.title }}
-        p(class="text-sm text-gray-400 mt-1 truncate")
-          a(
-            v-if="item.video.channel && item.video.channel_url"
-            :href="item.video.channel_url"
-            target="_blank"
-            rel="noopener"
-            class="hover:text-orange-400"
-          ) {{ item.video.channel }}
-          span(v-else-if="item.video.channel") {{ item.video.channel }}
-          span(v-if="item.video.channel") &nbsp;·&nbsp;
-          span Watched {{ item.watched_at.formatted }}
-      div(class="flex flex-col gap-2 shrink-0 self-start")
-        Button(
-          :label="item.active ? 'Deactivate' : 'Activate'"
-          :severity="item.active ? 'danger' : 'success'"
-          size="small"
-          :loading="toggling"
-          @click="toggle"
+Card(:pt="{ root: { style: { border: '1px solid', borderColor: item.active ? 'var(--p-primary-color)' : 'var(--p-content-border-color)' } }, body: { style: { padding: '1rem' } } }")
+  template(#content)
+    div(class="flex flex-col sm:flex-row gap-4")
+      a(:href="item.video.url" target="_blank" rel="noopener" class="shrink-0")
+        div(
+          class="w-full sm:w-32 aspect-video rounded overflow-hidden flex items-center justify-center"
+          :style="{ background: 'var(--p-surface-100)' }"
         )
-        Button(
-          v-if="!item.video.thumbnail_url"
-          label="Fetch details"
-          severity="secondary"
-          size="small"
-          icon="pi pi-download"
-          :loading="enriching"
-          @click="enrich"
-        )
+          img(
+            v-if="item.video.thumbnail_url"
+            :src="item.video.thumbnail_url"
+            :alt="item.video.title"
+            class="w-full h-full object-cover"
+          )
+          i(v-else class="pi pi-youtube text-2xl")
 
-    div(class="flex items-center gap-2 mt-auto pt-1 text-xs text-gray-500 flex-wrap")
-      span(v-if="item.video.duration") {{ item.video.duration.formatted }}
-      span(
-        :class="item.video.type === 'short' ? 'bg-purple-900/60 text-purple-300' : 'bg-blue-900/60 text-blue-300'"
-        class="px-1.5 py-0.5 rounded"
-      ) {{ item.video.type }}
-      template(v-if="formatCount(item.video.view_count)")
-        span · {{ formatCount(item.video.view_count) }} views
-      template(v-if="formatCount(item.video.like_count)")
-        span · {{ formatCount(item.video.like_count) }} likes
-      template(v-if="item.video.published_at")
-        span · Published {{ item.video.published_at.formatted }}
+      div(class="flex flex-col flex-1 min-w-0 gap-1")
+        div(class="flex items-start justify-between gap-4")
+          div(class="flex-1 min-w-0")
+            a(
+              :href="item.video.url"
+              target="_blank"
+              rel="noopener"
+              class="font-medium line-clamp-2 leading-snug block"
+            ) {{ item.video.title }}
+            p(class="text-sm mt-1 truncate" :style="{ color: 'var(--p-text-muted-color)' }")
+              a(
+                v-if="item.video.channel && item.video.channel_url"
+                :href="item.video.channel_url"
+                target="_blank"
+                rel="noopener"
+              ) {{ item.video.channel }}
+              span(v-else-if="item.video.channel") {{ item.video.channel }}
+              span(v-if="item.video.channel") &nbsp;·&nbsp;
+              span Watched {{ item.watched_at.formatted }}
+          div(class="flex flex-col gap-2 shrink-0 self-start")
+            Button(
+              :label="item.active ? 'Deactivate' : 'Activate'"
+              :severity="item.active ? 'danger' : 'success'"
+              size="small"
+              :loading="toggling"
+              @click="toggle"
+            )
+            Button(
+              v-if="!item.video.thumbnail_url"
+              label="Fetch details"
+              severity="secondary"
+              size="small"
+              icon="pi pi-download"
+              :loading="enriching"
+              @click="enrich"
+            )
+
+        div(class="flex items-center gap-2 mt-auto pt-1 text-xs flex-wrap" :style="{ color: 'var(--p-text-muted-color)' }")
+          span(v-if="item.video.duration") {{ item.video.duration.formatted }}
+          Tag(
+            :value="item.video.type"
+            :severity="item.video.type === 'short' ? 'secondary' : 'info'"
+            class="!text-xs !py-0.5 !px-1.5"
+          )
+          template(v-if="formatCount(item.video.view_count)")
+            span · {{ formatCount(item.video.view_count) }} views
+          template(v-if="formatCount(item.video.like_count)")
+            span · {{ formatCount(item.video.like_count) }} likes
+          template(v-if="item.video.published_at")
+            span · Published {{ item.video.published_at.formatted }}
 </template>

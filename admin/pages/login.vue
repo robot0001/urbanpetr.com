@@ -18,16 +18,20 @@ async function handleLogin() {
 </script>
 
 <template lang="pug">
-div(class="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center")
-  div(class="text-center space-y-6")
-    h1(class="text-2xl font-semibold text-orange-400") Admin
-    template(v-if="isConfigured")
-      p(class="text-gray-400 text-sm") Sign in to continue.
-      p(v-if="error" class="text-red-400 text-sm") {{ error }}
-      button(
-        class="px-6 py-3 bg-orange-600 hover:bg-orange-500 text-white rounded-lg font-medium transition-colors cursor-pointer"
-        @click="handleLogin"
-      ) Sign in with Google
-    template(v-else)
-      p(class="text-red-400 text-sm") Auth is not configured (missing Cognito env vars).
+div(class="min-h-screen flex items-center justify-center p-4")
+  Card(class="w-full max-w-sm text-center")
+    template(#content)
+      div(class="space-y-6 py-2")
+        h1(class="text-2xl font-semibold") Admin
+        template(v-if="isConfigured")
+          p(class="text-sm") Sign in to continue.
+          Message(v-if="error" severity="error" :closable="false") {{ error }}
+          Button(
+            label="Sign in with Google"
+            icon="pi pi-google"
+            class="w-full"
+            @click="handleLogin"
+          )
+        template(v-else)
+          Message(severity="error" :closable="false") Auth is not configured (missing Cognito env vars).
 </template>

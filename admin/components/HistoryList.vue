@@ -6,55 +6,50 @@ const props = defineProps<{
 
 const { items, pagination, page, itemsPerPage, sort, loading, error, fetchPage, onToggled, toggleSort, setItemsPerPage } = useYoutubeHistory(props.endpoint)
 
-const pageSizeOptions = [10, 25, 50, 100]
+function onPage(e: { page: number; rows: number }) {
+  if (e.rows !== itemsPerPage.value) {
+    setItemsPerPage(e.rows)
+  } else {
+    fetchPage(e.page + 1)
+  }
+}
 </script>
 
 <template lang="pug">
 div
-  div(class="flex items-center justify-between mb-4")
+  div(class="flex items-center justify-between mb-4 gap-4 flex-wrap")
     h1(class="text-xl font-semibold")
       | {{ title }}
-      span(v-if="pagination" class="ml-2 text-sm font-normal text-gray-400") {{ pagination.items_total.toLocaleString() }} items
-    div(class="flex items-center gap-3")
-      div(class="flex items-center gap-1")
-        button(
-          v-for="n in pageSizeOptions"
-          :key="n"
-          :class="['px-2 py-1 text-xs rounded', n === itemsPerPage ? 'bg-orange-600 text-white' : 'text-gray-400 hover:text-gray-100']"
-          @click="setItemsPerPage(n)"
-        ) {{ n }}
-      Button(
-        :label="sort === 'desc' ? 'Newest first' : 'Oldest first'"
-        severity="secondary"
-        size="small"
-        icon="pi pi-sort-alt"
-        @click="toggleSort"
-      )
-
-  div(v-if="pagination && pagination.pages_total > 1" class="flex items-center justify-center gap-4 mb-4")
+      span(v-if="pagination" class="ml-2 text-sm font-normal" :style="{ color: 'var(--p-text-muted-color)' }") {{ pagination.items_total.toLocaleString() }} items
     Button(
-      label="Prev"
-      icon="pi pi-chevron-left"
+      :label="sort === 'desc' ? 'Newest first' : 'Oldest first'"
       severity="secondary"
       size="small"
-      :disabled="page <= 1"
-      @click="fetchPage(page - 1)"
-    )
-    span(class="text-sm text-gray-400") Page {{ page }} of {{ pagination.pages_total }}
-    Button(
-      label="Next"
-      icon="pi pi-chevron-right"
-      iconPos="right"
-      severity="secondary"
-      size="small"
-      :disabled="page >= pagination.pages_total"
-      @click="fetchPage(page + 1)"
+      :icon="sort === 'desc' ? 'pi pi-sort-amount-down' : 'pi pi-sort-amount-up'"
+      @click="toggleSort"
     )
 
-  div(v-if="error" class="text-red-400 mb-4") {{ error }}
+  Paginator(
+    v-if="pagination && pagination.pages_total > 1"
+    class="mb-4 !bg-transparent"
+    :rows="itemsPerPage"
+    :totalRecords="pagination.items_total"
+    :first="(page - 1) * itemsPerPage"
+    :pageLinkSize="3"
+    :rowsPerPageOptions="[10, 25, 50, 100]"
+    @page="onPage"
+  )
+
+  div(v-if="error" class="mb-4")
+    Message(severity="error" :closable="false") {{ error }}
 
   div(v-if="loading" class="flex flex-col gap-3")
-    div(v-for="n in 5" :key="n" class="flex gap-4 p-4 rounded-lg border bg-gray-900 border-gray-800")
+    div(
+      v-for="n in 5"
+      :key="n"
+      class="flex gap-4 p-4 rounded-lg border"
+      :style="{ borderColor: 'var(--p-content-border-color)' }"
+    )
       Skeleton(width="8rem" height="4.5rem" borderRadius="0.375rem")
       div(class="flex flex-col flex-1 gap-2 pt-1")
         Skeleton(height="1rem" width="75%")
@@ -69,25 +64,16 @@ div
       @enriched="fetchPage(page)"
     )
 
-  div(v-else class="text-gray-500 py-12 text-center") No items.
+  div(v-else-if="!loading" class="py-12 text-center" :style="{ color: 'var(--p-text-muted-color)' }") No items.
 
-  div(v-if="pagination && pagination.pages_total > 1" class="flex items-center justify-center gap-4 mt-4")
-    Button(
-      label="Prev"
-      icon="pi pi-chevron-left"
-      severity="secondary"
-      size="small"
-      :disabled="page <= 1"
-      @click="fetchPage(page - 1)"
-    )
-    span(class="text-sm text-gray-400") Page {{ page }} of {{ pagination.pages_total }}
-    Button(
-      label="Next"
-      icon="pi pi-chevron-right"
-      iconPos="right"
-      severity="secondary"
-      size="small"
-      :disabled="page >= pagination.pages_total"
-      @click="fetchPage(page + 1)"
-    )
+  Paginator(
+    v-if="pagination && pagination.pages_total > 1"
+    class="mt-4 !bg-transparent"
+    :rows="itemsPerPage"
+    :totalRecords="pagination.items_total"
+    :first="(page - 1) * itemsPerPage"
+    :pageLinkSize="3"
+    :rowsPerPageOptions="[10, 25, 50, 100]"
+    @page="onPage"
+  )
 </template>
