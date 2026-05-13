@@ -4,6 +4,7 @@ import { definePreset } from '@primeuix/themes'
 const Theme = definePreset(Aura, {})
 
 export default defineNuxtConfig({
+  ssr: false,
   runtimeConfig: {
     public: {
       apiBase: 'https://api.urbanpetr.com',
@@ -46,14 +47,6 @@ export default defineNuxtConfig({
       charset: 'utf-8',
       viewport: 'width=device-width, initial-scale=1.0',
       title: 'Admin — UrbanPetr',
-      // Capture the full URL before Nuxt's router plugin strips the query string
-      // during hydration of prerendered pages (e.g. /callback?code=...).
-      script: [{ innerHTML: `if(location.search)sessionStorage.setItem('__qs__',location.search)`, tagPriority: 'critical' }],
     }
-  },
-  nitro: {
-    prerender: {
-      routes: ['/login', '/auth-callback'],
-    },
   },
 })

@@ -1,22 +1,16 @@
 <script setup lang="ts">
+const route = useRoute()
 const router = useRouter()
 const { exchangeCode } = useAuth()
 
 const error = ref<string | null>(null)
 
-// The inline <head> script in nuxt.config saves location.search to sessionStorage
-// before Nuxt's router plugin can strip the query string during prerendered
-// page hydration. Read it here and clear it immediately.
-const capturedSearch = process.client ? (sessionStorage.getItem('__qs__') ?? '') : ''
-if (process.client) sessionStorage.removeItem('__qs__')
-
 onMounted(async () => {
-  const params = new URLSearchParams(capturedSearch)
-  const code = params.get('code') ?? undefined
-  const errorParam = params.get('error') ?? undefined
+  const code = route.query.code as string | undefined
+  const errorParam = route.query.error as string | undefined
 
   if (errorParam) {
-    error.value = `Sign-in failed: ${params.get('error_description') ?? errorParam}`
+    error.value = `Sign-in failed: ${route.query.error_description ?? errorParam}`
     return
   }
 
