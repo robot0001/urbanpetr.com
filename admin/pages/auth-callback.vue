@@ -31,12 +31,12 @@ onMounted(async () => {
 </script>
 
 <template lang="pug">
-div(class="min-h-screen bg-gray-950 flex items-center justify-center p-4")
+div(class="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center p-4")
   div(class="text-center space-y-4")
     template(v-if="error")
       Message(severity="error" :closable="false") {{ error }}
       Button(label="Back to home" text severity="secondary" @click="$router.push('/')")
     template(v-else)
       ProgressSpinner(strokeWidth="4" style="width: 2.5rem; height: 2.5rem")
-      p(class="text-gray-400 text-sm mt-2") Signing in…
+      p(class="text-gray-500 dark:text-gray-400 text-sm mt-2") Signing in…
 </template>

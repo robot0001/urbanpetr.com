@@ -14,9 +14,9 @@ const youtubeItems = [
 </script>
 
 <template lang="pug">
-div(:class="['min-h-screen text-gray-100', isDark ? 'bg-gray-950' : 'bg-gray-50 text-gray-900']")
-  nav(v-if="showNav" class="border-b border-white/10 px-4 md:px-6 py-3 flex items-center gap-2 md:gap-4")
-    span(class="font-semibold text-orange-400 mr-2") Admin
+div(class="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100")
+  nav(v-if="showNav" class="border-b border-gray-200 dark:border-white/10 px-4 md:px-6 py-3 flex items-center gap-2 md:gap-4")
+    span(class="font-semibold text-orange-500 dark:text-orange-400 mr-2") Admin
     div(class="relative")
       Button(
         label="YouTube"
@@ -24,7 +24,6 @@ div(:class="['min-h-screen text-gray-100', isDark ? 'bg-gray-950' : 'bg-gray-50 
         iconPos="right"
         text
         size="small"
-        class="!text-gray-400 hover:!text-gray-100"
         @click="youtubeMenu.toggle($event)"
       )
       Menu(ref="youtubeMenu" popup :model="youtubeItems")
