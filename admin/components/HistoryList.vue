@@ -35,6 +35,7 @@ div
     :rows="itemsPerPage"
     :totalRecords="pagination.items_total"
     :first="(page - 1) * itemsPerPage"
+    :pageLinkSize="3"
     :rowsPerPageOptions="[10, 25, 50, 100]"
     @page="onPage"
   )
@@ -71,6 +72,7 @@ div
     :rows="itemsPerPage"
     :totalRecords="pagination.items_total"
     :first="(page - 1) * itemsPerPage"
+    :pageLinkSize="3"
     :rowsPerPageOptions="[10, 25, 50, 100]"
     @page="onPage"
   )
