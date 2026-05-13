@@ -73,6 +73,12 @@ async function startActivate() {
   showActivateDialog.value = true
 }
 
+function startEdit() {
+  activateComment.value = props.item.comment ?? ''
+  activateCustomTags.value = [...props.item.custom_tags]
+  showActivateDialog.value = true
+}
+
 
 async function confirmActivate() {
   confirming.value = true
@@ -150,6 +156,13 @@ Card(:pt="{ root: { style: { border: '1px solid', borderColor: item.active ? 'va
               @click="toggle"
             )
             Button(
+              v-if="item.active"
+              label="Edit"
+              severity="secondary"
+              size="small"
+              @click="startEdit"
+            )
+            Button(
               v-if="!item.video.thumbnail_url"
               label="Fetch details"
               severity="secondary"
@@ -172,9 +185,20 @@ Card(:pt="{ root: { style: { border: '1px solid', borderColor: item.active ? 'va
           template(v-if="item.video.published_at")
             span · Published {{ item.video.published_at.formatted }}
 
+        div(v-if="item.comment || item.custom_tags.length" class="flex flex-col gap-1 pt-1")
+          p(v-if="item.comment" class="text-xs italic" :style="{ color: 'var(--p-text-muted-color)' }") {{ item.comment }}
+          div(v-if="item.custom_tags.length" class="flex gap-1 flex-wrap")
+            Tag(
+              v-for="tag in item.custom_tags"
+              :key="tag"
+              :value="tag"
+              severity="secondary"
+              class="!text-xs !py-0.5 !px-1.5"
+            )
+
 Dialog(
   v-model:visible="showActivateDialog"
-  header="Activate video"
+  :header="item.active ? 'Edit details' : 'Activate video'"
   :modal="true"
   :closable="true"
   :style="{ width: '32rem' }"
@@ -199,5 +223,5 @@ Dialog(
   template(#footer)
     div(class="flex justify-end gap-2")
       Button(label="Cancel" severity="secondary" :disabled="confirming" @click="showActivateDialog = false")
-      Button(label="Activate" severity="success" :loading="confirming" @click="confirmActivate")
+      Button(:label="item.active ? 'Save' : 'Activate'" severity="success" :loading="confirming" @click="confirmActivate")
 </template>
