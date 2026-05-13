@@ -39,9 +39,10 @@ export function useAuth() {
   )
 
   const isAuthenticated = computed(() => !!token.value)
+  const isConfigured = !!(domain && clientId)
 
   async function login() {
-    if (!domain || !clientId) return
+    if (!domain || !clientId) throw new Error('Auth not configured — missing Cognito env vars')
     const verifier = await generateVerifier()
     const challenge = await generateChallenge(verifier)
     sessionStorage.setItem(VERIFIER_KEY, verifier)
@@ -103,5 +104,5 @@ export function useAuth() {
     window.location.href = `https://${domain}/logout?${params}`
   }
 
-  return { token, isAuthenticated, userEmail, login, exchangeCode, logout }
+  return { token, isAuthenticated, isConfigured, userEmail, login, exchangeCode, logout }
 }
