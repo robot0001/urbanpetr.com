@@ -32,10 +32,10 @@ export function useAuth() {
   const clientId = config.public.cognitoClientId as string
 
   const token = useState<string | null>(TOKEN_KEY, () =>
-    process.client ? sessionStorage.getItem(TOKEN_KEY) : null
+    process.client ? localStorage.getItem(TOKEN_KEY) : null
   )
   const userEmail = useState<string | null>(EMAIL_KEY, () =>
-    process.client ? sessionStorage.getItem(EMAIL_KEY) : null
+    process.client ? localStorage.getItem(EMAIL_KEY) : null
   )
 
   const isAuthenticated = computed(() => !!token.value)
@@ -81,19 +81,19 @@ export function useAuth() {
     }
 
     sessionStorage.removeItem(VERIFIER_KEY)
-    sessionStorage.setItem(TOKEN_KEY, data.access_token)
+    localStorage.setItem(TOKEN_KEY, data.access_token)
     token.value = data.access_token
     // email lives in the ID token; store it separately so we don't keep the ID token around
     if (data.id_token) {
       const email = (decodeJwtPayload(data.id_token)?.email as string) ?? null
-      if (email) sessionStorage.setItem(EMAIL_KEY, email)
+      if (email) localStorage.setItem(EMAIL_KEY, email)
       userEmail.value = email
     }
   }
 
   function logout() {
-    sessionStorage.removeItem(TOKEN_KEY)
-    sessionStorage.removeItem(EMAIL_KEY)
+    localStorage.removeItem(TOKEN_KEY)
+    localStorage.removeItem(EMAIL_KEY)
     token.value = null
     userEmail.value = null
     if (!domain || !clientId) return
