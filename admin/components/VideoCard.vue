@@ -11,11 +11,27 @@ const { public: { apiBase } } = useRuntimeConfig()
 const { token, login } = useAuth()
 
 const toggling = ref(false)
+const enriching = ref(false)
 const activating = ref(false)
 const showActivateDialog = ref(false)
 const activateComment = ref('')
 const activateCustomTags = ref<string[]>([])
 const confirming = ref(false)
+
+async function enrich() {
+  enriching.value = true
+  try {
+    await $fetch(`${apiBase}/v1/history/youtube/${props.item.uuid}/enrich`, {
+      method: 'POST',
+      headers: token.value ? { Authorization: `Bearer ${token.value}` } : {},
+    })
+    emit('enriched', props.item.uuid)
+  } catch (e: any) {
+    if (e?.response?.status === 401) login()
+  } finally {
+    enriching.value = false
+  }
+}
 
 async function toggle() {
   if (props.item.active) {
@@ -132,6 +148,14 @@ Card(:pt="{ root: { style: { border: '1px solid', borderColor: item.active ? 'va
               size="small"
               :loading="item.active ? toggling : activating"
               @click="toggle"
+            )
+            Button(
+              v-if="!item.video.thumbnail_url"
+              label="Fetch details"
+              severity="secondary"
+              size="small"
+              :loading="enriching"
+              @click="enrich"
             )
 
         div(class="flex items-center gap-2 mt-auto pt-1 text-xs flex-wrap" :style="{ color: 'var(--p-text-muted-color)' }")
