@@ -55,8 +55,8 @@ function formatCount(n: number | null): string | null {
 
 <template lang="pug">
 div(
-  class="flex flex-col sm:flex-row gap-4 p-4 rounded-lg border transition-opacity"
-  :style="{ borderColor: 'var(--p-content-border-color)', opacity: item.active ? '1' : '0.5' }"
+  class="flex flex-col sm:flex-row gap-4 p-4 rounded-lg border"
+  :style="{ borderColor: item.active ? 'var(--p-primary-color)' : 'var(--p-content-border-color)' }"
 )
   a(:href="item.video.url" target="_blank" rel="noopener" class="shrink-0")
     div(
