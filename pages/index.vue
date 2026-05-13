@@ -44,17 +44,17 @@ div(class="flex flex-col lg:flex-row gap-6")
           :class="health?.status === 'ok' ? 'text-green-400' : fetchStatus === 'pending' ? 'text-gray-500' : 'text-red-400'"
         ) {{ health?.status === 'ok' ? '● ok' : fetchStatus === 'pending' ? '○ …' : '● unavailable' }}
 
-    //- Variant 1: comment as italic pull-quote, thumbnail + title below
+    //- Variant 1: comment pull-quote + side thumbnail
     div(class="flex flex-col gap-1")
       p(class="text-xs text-gray-600 uppercase tracking-wider font-medium px-1") ↓ variant 1
       ActiveVideosV1(:items="videos")
 
-    //- Variant 2: thumbnail-first card, comment in accent block
+    //- Variant 2: comment only, no thumbnail — pure text
     div(class="flex flex-col gap-1")
       p(class="text-xs text-gray-600 uppercase tracking-wider font-medium px-1") ↓ variant 2
       ActiveVideosV2(:items="videos")
 
-    //- Variant 3: compact list, comment as primary label
+    //- Variant 3: comment pull-quote + full-width thumbnail below
     div(class="flex flex-col gap-1")
       p(class="text-xs text-gray-600 uppercase tracking-wider font-medium px-1") ↓ variant 3
       ActiveVideosV3(:items="videos")
