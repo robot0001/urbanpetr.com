@@ -49,7 +49,7 @@ export function useAuth() {
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: clientId,
-      redirect_uri: `${window.location.origin}/callback`,
+      redirect_uri: `${window.location.origin}/auth-callback`,
       scope: 'email openid',
       code_challenge: challenge,
       code_challenge_method: 'S256',
@@ -61,7 +61,7 @@ export function useAuth() {
   async function exchangeCode(code: string): Promise<void> {
     const verifier = sessionStorage.getItem(VERIFIER_KEY)
     if (!verifier) throw new Error('PKCE verifier missing — try signing in again')
-    const redirectUri = `${window.location.origin}/callback`
+    const redirectUri = `${window.location.origin}/auth-callback`
 
     const res = await fetch(`https://${domain}/oauth2/token`, {
       method: 'POST',
