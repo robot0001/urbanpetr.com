@@ -11,11 +11,28 @@ const { public: { apiBase } } = useRuntimeConfig()
 const { token, login } = useAuth()
 
 const toggling = ref(false)
+const enriching = ref(false)
 const activating = ref(false)
 const showActivateDialog = ref(false)
+const editing = ref(false)
 const activateComment = ref('')
 const activateCustomTags = ref<string[]>([])
 const confirming = ref(false)
+
+async function enrich() {
+  enriching.value = true
+  try {
+    await $fetch(`${apiBase}/v1/history/youtube/${props.item.uuid}/enrich`, {
+      method: 'POST',
+      headers: token.value ? { Authorization: `Bearer ${token.value}` } : {},
+    })
+    emit('enriched', props.item.uuid)
+  } catch (e: any) {
+    if (e?.response?.status === 401) login()
+  } finally {
+    enriching.value = false
+  }
+}
 
 async function toggle() {
   if (props.item.active) {
@@ -45,7 +62,6 @@ async function startActivate() {
         method: 'POST',
         headers: token.value ? { Authorization: `Bearer ${token.value}` } : {},
       })
-      emit('enriched', props.item.uuid)
     }
   } catch (e: any) {
     if (e?.response?.status === 401) { activating.value = false; login(); return }
@@ -53,27 +69,42 @@ async function startActivate() {
   } finally {
     activating.value = false
   }
+  editing.value = false
   activateComment.value = ''
   activateCustomTags.value = []
   showActivateDialog.value = true
 }
 
+function startEdit() {
+  editing.value = true
+  activateComment.value = props.item.comment ?? ''
+  activateCustomTags.value = [...props.item.custom_tags]
+  showActivateDialog.value = true
+}
+
 async function confirmActivate() {
   confirming.value = true
+  const body = {
+    comment: activateComment.value.trim() || null,
+    custom_tags: activateCustomTags.value,
+  }
+  const headers = { 'Content-Type': 'application/json', ...(token.value ? { Authorization: `Bearer ${token.value}` } : {}) }
   try {
-    await $fetch(`${apiBase}/v1/history/youtube/${props.item.uuid}/activate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token.value ? { Authorization: `Bearer ${token.value}` } : {}),
-      },
-      body: {
-        comment: activateComment.value.trim() || null,
-        custom_tags: activateCustomTags.value,
-      },
-    })
+    if (editing.value) {
+      await $fetch(`${apiBase}/v1/history/youtube/${props.item.uuid}`, {
+        method: 'PATCH',
+        headers,
+        body,
+      })
+    } else {
+      await $fetch(`${apiBase}/v1/history/youtube/${props.item.uuid}/activate`, {
+        method: 'POST',
+        headers,
+        body,
+      })
+    }
     showActivateDialog.value = false
-    emit('toggled', props.item.uuid, true)
+    if (!editing.value) emit('toggled', props.item.uuid, true)
   } catch (e: any) {
     if (e?.response?.status === 401) login()
   } finally {
@@ -133,6 +164,20 @@ Card(:pt="{ root: { style: { border: '1px solid', borderColor: item.active ? 'va
               :loading="item.active ? toggling : activating"
               @click="toggle"
             )
+            Button(
+              label="Edit"
+              severity="secondary"
+              size="small"
+              @click="startEdit"
+            )
+            Button(
+              v-if="!item.video.thumbnail_url"
+              label="Fetch details"
+              severity="secondary"
+              size="small"
+              :loading="enriching"
+              @click="enrich"
+            )
 
         div(class="flex items-center gap-2 mt-auto pt-1 text-xs flex-wrap" :style="{ color: 'var(--p-text-muted-color)' }")
           span(v-if="item.video.duration") {{ item.video.duration.formatted }}
@@ -148,9 +193,20 @@ Card(:pt="{ root: { style: { border: '1px solid', borderColor: item.active ? 'va
           template(v-if="item.video.published_at")
             span · Published {{ item.video.published_at.formatted }}
 
+        div(v-if="item.comment || item.custom_tags.length" class="flex flex-col gap-1 pt-1")
+          p(v-if="item.comment" class="text-xs italic" :style="{ color: 'var(--p-text-muted-color)' }") {{ item.comment }}
+          div(v-if="item.custom_tags.length" class="flex gap-1 flex-wrap")
+            Tag(
+              v-for="tag in item.custom_tags"
+              :key="tag"
+              :value="tag"
+              severity="secondary"
+              class="!text-xs !py-0.5 !px-1.5"
+            )
+
 Dialog(
   v-model:visible="showActivateDialog"
-  header="Activate video"
+  :header="editing ? 'Edit details' : 'Activate video'"
   :modal="true"
   :closable="true"
   :style="{ width: '32rem' }"
@@ -175,5 +231,5 @@ Dialog(
   template(#footer)
     div(class="flex justify-end gap-2")
       Button(label="Cancel" severity="secondary" :disabled="confirming" @click="showActivateDialog = false")
-      Button(label="Activate" severity="success" :loading="confirming" @click="confirmActivate")
+      Button(:label="editing ? 'Save' : 'Activate'" severity="success" :loading="confirming" @click="confirmActivate")
 </template>
