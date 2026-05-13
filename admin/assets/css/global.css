@@ -8,3 +8,8 @@ body {
   background-color: var(--p-surface-ground);
   color: var(--p-text-color);
 }
+
+.nav-item-active .p-menu-item-link {
+  color: var(--p-primary-color) !important;
+  font-weight: 600;
+}

@@ -7,10 +7,10 @@ const { isDark, toggleTheme } = useTheme()
 const showNav = computed(() => route.path !== '/login' && route.path !== '/auth-callback')
 
 const youtubeMenu = ref()
-const youtubeItems = [
-  { label: 'Active', icon: 'pi pi-play', command: () => router.push('/') },
-  { label: 'All', icon: 'pi pi-list', command: () => router.push('/all') },
-]
+const youtubeItems = computed(() => [
+  { label: 'Active', icon: 'pi pi-play', command: () => router.push('/'), class: route.path === '/' ? 'nav-item-active' : '' },
+  { label: 'All', icon: 'pi pi-list', command: () => router.push('/all'), class: route.path === '/all' ? 'nav-item-active' : '' },
+])
 </script>
 
 <template lang="pug">
