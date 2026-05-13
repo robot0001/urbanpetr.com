@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import type { PaletteName } from '~/composables/useTheme'
+
 const route = useRoute()
 const router = useRouter()
 const { userEmail, logout } = useAuth()
-const { isDark, toggleTheme } = useTheme()
+const { isDark, palette, toggleTheme, setPalette } = useTheme()
 
 const showNav = computed(() => route.path !== '/login' && route.path !== '/auth-callback')
 
@@ -11,6 +13,15 @@ const youtubeItems = computed(() => [
   { label: 'Active', icon: 'pi pi-play', command: () => router.push('/'), class: route.path === '/' ? 'nav-item-active' : '' },
   { label: 'All', icon: 'pi pi-list', command: () => router.push('/all'), class: route.path === '/all' ? 'nav-item-active' : '' },
 ])
+
+const paletteMenu = ref()
+const paletteItems = computed(() =>
+  (['orange', 'blue', 'green', 'purple', 'rose'] as PaletteName[]).map(name => ({
+    label: name.charAt(0).toUpperCase() + name.slice(1),
+    icon: name === palette.value ? 'pi pi-check' : undefined,
+    command: () => setPalette(name),
+  }))
+)
 </script>
 
 <template lang="pug">
@@ -33,6 +44,16 @@ div(class="min-h-screen")
       Menu(ref="youtubeMenu" popup :model="youtubeItems")
     div(class="ml-auto flex items-center gap-1 md:gap-3")
       span(class="hidden md:block text-sm mr-2") {{ userEmail }}
+      Button(
+        icon="pi pi-palette"
+        text
+        rounded
+        severity="secondary"
+        size="small"
+        aria-label="Change colour palette"
+        @click="paletteMenu.toggle($event)"
+      )
+      Menu(ref="paletteMenu" popup :model="paletteItems")
       Button(
         :icon="isDark ? 'pi pi-sun' : 'pi pi-moon'"
         text
