@@ -54,16 +54,22 @@ function formatCount(n: number | null): string | null {
 </script>
 
 <template lang="pug">
-div(:class="['flex flex-col sm:flex-row gap-4 p-4 rounded-lg border transition-colors', item.active ? 'bg-white dark:bg-gray-900 border-green-600 dark:border-green-800' : 'bg-gray-50 dark:bg-gray-900/30 border-gray-200 dark:border-gray-800/50']")
+div(
+  class="flex flex-col sm:flex-row gap-4 p-4 rounded-lg border transition-opacity"
+  :style="{ borderColor: 'var(--p-content-border-color)', opacity: item.active ? '1' : '0.5' }"
+)
   a(:href="item.video.url" target="_blank" rel="noopener" class="shrink-0")
-    div(class="w-full sm:w-32 aspect-video rounded overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center")
+    div(
+      class="w-full sm:w-32 aspect-video rounded overflow-hidden flex items-center justify-center"
+      :style="{ background: 'var(--p-surface-100)' }"
+    )
       img(
         v-if="item.video.thumbnail_url"
         :src="item.video.thumbnail_url"
         :alt="item.video.title"
         class="w-full h-full object-cover"
       )
-      i(v-else class="pi pi-youtube text-2xl text-gray-400 dark:text-gray-600")
+      i(v-else class="pi pi-youtube text-2xl")
 
   div(class="flex flex-col flex-1 min-w-0 gap-1")
     div(class="flex items-start justify-between gap-4")
@@ -72,15 +78,14 @@ div(:class="['flex flex-col sm:flex-row gap-4 p-4 rounded-lg border transition-c
           :href="item.video.url"
           target="_blank"
           rel="noopener"
-          class="font-medium text-gray-900 dark:text-gray-100 hover:text-orange-500 dark:hover:text-orange-400 line-clamp-2 leading-snug block"
+          class="font-medium line-clamp-2 leading-snug block"
         ) {{ item.video.title }}
-        p(class="text-sm text-gray-500 dark:text-gray-400 mt-1 truncate")
+        p(class="text-sm mt-1 truncate" :style="{ color: 'var(--p-text-muted-color)' }")
           a(
             v-if="item.video.channel && item.video.channel_url"
             :href="item.video.channel_url"
             target="_blank"
             rel="noopener"
-            class="hover:text-orange-500 dark:hover:text-orange-400"
           ) {{ item.video.channel }}
           span(v-else-if="item.video.channel") {{ item.video.channel }}
           span(v-if="item.video.channel") &nbsp;·&nbsp;
@@ -103,7 +108,7 @@ div(:class="['flex flex-col sm:flex-row gap-4 p-4 rounded-lg border transition-c
           @click="enrich"
         )
 
-    div(class="flex items-center gap-2 mt-auto pt-1 text-xs text-gray-500 flex-wrap")
+    div(class="flex items-center gap-2 mt-auto pt-1 text-xs flex-wrap" :style="{ color: 'var(--p-text-muted-color)' }")
       span(v-if="item.video.duration") {{ item.video.duration.formatted }}
       Tag(
         :value="item.video.type"

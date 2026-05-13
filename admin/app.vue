@@ -14,9 +14,13 @@ const youtubeItems = [
 </script>
 
 <template lang="pug">
-div(class="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100")
-  nav(v-if="showNav" class="border-b border-gray-200 dark:border-white/10 px-4 md:px-6 py-3 flex items-center gap-2 md:gap-4")
-    span(class="font-semibold text-orange-500 dark:text-orange-400 mr-2") Admin
+div(class="min-h-screen")
+  nav(
+    v-if="showNav"
+    style="border-bottom: 1px solid var(--p-content-border-color)"
+    class="px-4 md:px-6 py-3 flex items-center gap-2 md:gap-4"
+  )
+    span(class="font-semibold mr-2") Admin
     div(class="relative")
       Button(
         label="YouTube"
@@ -28,7 +32,7 @@ div(class="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray
       )
       Menu(ref="youtubeMenu" popup :model="youtubeItems")
     div(class="ml-auto flex items-center gap-1 md:gap-3")
-      span(class="hidden md:block text-sm text-gray-500 mr-2") {{ userEmail }}
+      span(class="hidden md:block text-sm mr-2") {{ userEmail }}
       Button(
         :icon="isDark ? 'pi pi-sun' : 'pi pi-moon'"
         text

@@ -20,7 +20,7 @@ div
   div(class="flex items-center justify-between mb-4 gap-4 flex-wrap")
     h1(class="text-xl font-semibold")
       | {{ title }}
-      span(v-if="pagination" class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400") {{ pagination.items_total.toLocaleString() }} items
+      span(v-if="pagination" class="ml-2 text-sm font-normal" :style="{ color: 'var(--p-text-muted-color)' }") {{ pagination.items_total.toLocaleString() }} items
     Button(
       :label="sort === 'desc' ? 'Newest first' : 'Oldest first'"
       severity="secondary"
@@ -33,7 +33,12 @@ div
     Message(severity="error" :closable="false") {{ error }}
 
   div(v-if="loading" class="flex flex-col gap-3")
-    div(v-for="n in 5" :key="n" class="flex gap-4 p-4 rounded-lg border bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800")
+    div(
+      v-for="n in 5"
+      :key="n"
+      class="flex gap-4 p-4 rounded-lg border"
+      :style="{ borderColor: 'var(--p-content-border-color)' }"
+    )
       Skeleton(width="8rem" height="4.5rem" borderRadius="0.375rem")
       div(class="flex flex-col flex-1 gap-2 pt-1")
         Skeleton(height="1rem" width="75%")
@@ -48,7 +53,7 @@ div
       @enriched="fetchPage(page)"
     )
 
-  div(v-else-if="!loading" class="text-gray-500 py-12 text-center") No items.
+  div(v-else-if="!loading" class="py-12 text-center" :style="{ color: 'var(--p-text-muted-color)' }") No items.
 
   Paginator(
     v-if="pagination && pagination.pages_total > 1"
