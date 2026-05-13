@@ -29,6 +29,8 @@ export interface HistoryItem {
   uuid: string
   active: boolean
   watched_at: TimestampField
+  comment: string | null
+  custom_tags: string[]
   video: Video
 }
 

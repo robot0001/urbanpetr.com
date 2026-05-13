@@ -9,39 +9,75 @@ const emit = defineEmits<{
 
 const { public: { apiBase } } = useRuntimeConfig()
 const { token, login } = useAuth()
+
 const toggling = ref(false)
+const activating = ref(false)
+const showActivateDialog = ref(false)
+const activateComment = ref('')
+const activateCustomTags = ref<string[]>([])
+const confirming = ref(false)
 
 async function toggle() {
-  if (props.item.active && !window.confirm(`Are you sure you want to deactivate "${props.item.video.title}"?`)) return
-  toggling.value = true
-  try {
-    const action = props.item.active ? 'deactivate' : 'activate'
-    await $fetch(`${apiBase}/v1/history/youtube/${props.item.uuid}/${action}`, {
-      method: 'POST',
-      headers: token.value ? { Authorization: `Bearer ${token.value}` } : {},
-    })
-    emit('toggled', props.item.uuid, !props.item.active)
-  } catch (e: any) {
-    if (e?.response?.status === 401) login()
-  } finally {
-    toggling.value = false
+  if (props.item.active) {
+    if (!window.confirm(`Are you sure you want to deactivate "${props.item.video.title}"?`)) return
+    toggling.value = true
+    try {
+      await $fetch(`${apiBase}/v1/history/youtube/${props.item.uuid}/deactivate`, {
+        method: 'POST',
+        headers: token.value ? { Authorization: `Bearer ${token.value}` } : {},
+      })
+      emit('toggled', props.item.uuid, false)
+    } catch (e: any) {
+      if (e?.response?.status === 401) login()
+    } finally {
+      toggling.value = false
+    }
+  } else {
+    await startActivate()
   }
 }
 
-const enriching = ref(false)
-
-async function enrich() {
-  enriching.value = true
+async function startActivate() {
+  activating.value = true
   try {
-    await $fetch(`${apiBase}/v1/history/youtube/${props.item.uuid}/enrich`, {
+    if (!props.item.video.thumbnail_url) {
+      await $fetch(`${apiBase}/v1/history/youtube/${props.item.uuid}/enrich`, {
+        method: 'POST',
+        headers: token.value ? { Authorization: `Bearer ${token.value}` } : {},
+      })
+      emit('enriched', props.item.uuid)
+    }
+  } catch (e: any) {
+    if (e?.response?.status === 401) { activating.value = false; login(); return }
+    // enrich failure — open dialog anyway without thumbnail
+  } finally {
+    activating.value = false
+  }
+  activateComment.value = ''
+  activateCustomTags.value = []
+  showActivateDialog.value = true
+}
+
+async function confirmActivate() {
+  confirming.value = true
+  try {
+    await $fetch(`${apiBase}/v1/history/youtube/${props.item.uuid}/activate`, {
       method: 'POST',
-      headers: token.value ? { Authorization: `Bearer ${token.value}` } : {},
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token.value ? { Authorization: `Bearer ${token.value}` } : {}),
+      },
+      body: {
+        comment: activateComment.value.trim() || null,
+        custom_tags: activateCustomTags.value,
+      },
     })
-    emit('enriched', props.item.uuid)
+    showActivateDialog.value = false
+    emit('toggled', props.item.uuid, true)
   } catch (e: any) {
     if (e?.response?.status === 401) login()
   } finally {
-    enriching.value = false
+    confirming.value = false
   }
 }
 
@@ -51,7 +87,6 @@ function formatCount(n: number | null): string | null {
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`
   return String(n)
 }
-
 </script>
 
 <template lang="pug">
@@ -95,17 +130,8 @@ Card(:pt="{ root: { style: { border: '1px solid', borderColor: item.active ? 'va
               :label="item.active ? 'Deactivate' : 'Activate'"
               :severity="item.active ? 'danger' : 'success'"
               size="small"
-              :loading="toggling"
+              :loading="item.active ? toggling : activating"
               @click="toggle"
-            )
-            Button(
-              v-if="!item.video.thumbnail_url"
-              label="Fetch details"
-              severity="secondary"
-              size="small"
-              icon="pi pi-download"
-              :loading="enriching"
-              @click="enrich"
             )
 
         div(class="flex items-center gap-2 mt-auto pt-1 text-xs flex-wrap" :style="{ color: 'var(--p-text-muted-color)' }")
@@ -121,4 +147,33 @@ Card(:pt="{ root: { style: { border: '1px solid', borderColor: item.active ? 'va
             span · {{ formatCount(item.video.like_count) }} likes
           template(v-if="item.video.published_at")
             span · Published {{ item.video.published_at.formatted }}
+
+Dialog(
+  v-model:visible="showActivateDialog"
+  header="Activate video"
+  :modal="true"
+  :closable="true"
+  :style="{ width: '32rem' }"
+)
+  div(class="flex flex-col gap-4")
+    div(class="flex gap-3 items-start")
+      img(
+        v-if="item.video.thumbnail_url"
+        :src="item.video.thumbnail_url"
+        :alt="item.video.title"
+        class="w-24 aspect-video object-cover rounded shrink-0"
+      )
+      div(class="flex flex-col gap-1 min-w-0")
+        p(class="font-medium line-clamp-2 leading-snug text-sm") {{ item.video.title }}
+        p(v-if="item.video.channel" class="text-xs truncate" :style="{ color: 'var(--p-text-muted-color)' }") {{ item.video.channel }}
+    div(class="flex flex-col gap-1")
+      label(class="text-sm font-medium") Comment
+      Textarea(v-model="activateComment" :autoResize="true" rows="3" placeholder="Optional note..." class="w-full")
+    div(class="flex flex-col gap-1")
+      label(class="text-sm font-medium") Tags
+      InputChips(v-model="activateCustomTags" placeholder="Add tag + Enter" class="w-full")
+  template(#footer)
+    div(class="flex justify-end gap-2")
+      Button(label="Cancel" severity="secondary" :disabled="confirming" @click="showActivateDialog = false")
+      Button(label="Activate" severity="success" :loading="confirming" @click="confirmActivate")
 </template>
