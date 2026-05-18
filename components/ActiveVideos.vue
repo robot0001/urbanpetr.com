@@ -22,11 +22,12 @@ function next() { if (page.value < totalPages.value) page.value++ }
 <template lang="pug">
 Panel(header="Now Watching")
   div(v-if="!items.length" class="text-sm" style="color: var(--p-text-muted-color)") Nothing active right now.
-  div(
-    v-for="item in items"
-    :key="item.uuid"
-    class="mb-6 last:mb-0 pb-6 last:pb-0 border-b last:border-b-0 border-white/10"
-  )
+  div
+    div(
+      v-for="item in items"
+      :key="item.uuid"
+      class="mb-6 last:mb-0 pb-6 last:pb-0 border-b last:border-b-0 border-white/10"
+    )
     a(:href="item.video.url" target="_blank" rel="noopener" class="block group")
       div(
         v-if="item.comment || item.custom_tags.length"
