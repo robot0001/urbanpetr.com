@@ -61,7 +61,7 @@ div
       :key="item.uuid"
       :item="item"
       @toggled="onToggled"
-      @enriched="fetchPage(page)"
+      @enriched="fetchPage(page, false)"
     )
 
   div(v-else-if="!loading" class="py-12 text-center" :style="{ color: 'var(--p-text-muted-color)' }") No items.

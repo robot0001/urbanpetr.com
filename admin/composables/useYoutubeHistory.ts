@@ -55,8 +55,8 @@ export function useYoutubeHistory(endpoint: string) {
 
   const isActiveOnly = !endpoint.endsWith('/all')
 
-  async function fetchPage(p: number = page.value) {
-    loading.value = true
+  async function fetchPage(p: number = page.value, showLoading: boolean = true) {
+    if (showLoading) loading.value = true
     error.value = null
     try {
       const url = `${apiBase}${endpoint}?page=${p}&items_per_page=${itemsPerPage.value}&sort=${sort.value}`
