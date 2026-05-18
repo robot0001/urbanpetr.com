@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import type { HistoryItem, Pagination } from '~/types/youtube'
 
+const props = withDefaults(defineProps<{ itemsPerPage?: number }>(), { itemsPerPage: 10 })
+
 const { public: { apiBase } } = useRuntimeConfig()
 
 const page = ref(1)
 
 const { data } = useFetch<{ items: HistoryItem[]; pagination: Pagination }>(
-  () => `${apiBase}/v1/history/youtube?page=${page.value}&items_per_page=10&sort=desc`,
+  () => `${apiBase}/v1/history/youtube?page=${page.value}&items_per_page=${props.itemsPerPage}&sort=desc`,
   { server: false }
 )
 

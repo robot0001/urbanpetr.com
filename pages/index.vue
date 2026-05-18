@@ -36,5 +36,5 @@ div(class="flex flex-col lg:flex-row gap-6")
           :class="health?.status === 'ok' ? 'text-green-400' : fetchStatus === 'pending' ? 'text-gray-500' : 'text-red-400'"
         ) {{ health?.status === 'ok' ? '● ok' : fetchStatus === 'pending' ? '○ …' : '● unavailable' }}
 
-    ActiveVideos
+    ActiveVideos(:items-per-page="5")
 </template>

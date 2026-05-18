@@ -5,6 +5,8 @@ nav(class="sticky top-0 z-50 border-b backdrop-blur-sm bg-white/80 dark:bg-black
       NuxtLink(to="/") Home
     li
       NuxtLink(to="/about") About
+    li
+      NuxtLink(to="/my-stuff") My Stuff
 main(class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12")
   slot
 </template>
