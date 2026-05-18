@@ -53,13 +53,17 @@ export function useYoutubeHistory(endpoint: string) {
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  const isActiveOnly = !endpoint.endsWith('/all')
+  const isAllEndpoint = endpoint.endsWith('/all')
+  const isActiveOnly = !isAllEndpoint
+
+  const typeFilter = ref<'all' | 'video' | 'short'>(isAllEndpoint ? 'video' : 'all')
 
   async function fetchPage(p: number = page.value) {
     loading.value = true
     error.value = null
     try {
-      const url = `${apiBase}${endpoint}?page=${p}&items_per_page=${itemsPerPage.value}&sort=${sort.value}`
+      const typeParam = isAllEndpoint && typeFilter.value !== 'all' ? `&type=${typeFilter.value}` : ''
+      const url = `${apiBase}${endpoint}?page=${p}&items_per_page=${itemsPerPage.value}&sort=${sort.value}${typeParam}`
       const headers: Record<string, string> = token.value ? { Authorization: `Bearer ${token.value}` } : {}
       const data = await $fetch<{ items: HistoryItem[], pagination: Pagination }>(url, { headers })
       items.value = data.items ?? []
@@ -87,6 +91,8 @@ export function useYoutubeHistory(endpoint: string) {
     fetchPage(1)
   }
 
+  watch(typeFilter, () => fetchPage(1))
+
   onMounted(() => fetchPage(1))
 
   function setItemsPerPage(n: number) {
@@ -94,5 +100,5 @@ export function useYoutubeHistory(endpoint: string) {
     fetchPage(1)
   }
 
-  return { items, pagination, page, itemsPerPage, sort, loading, error, fetchPage, onToggled, toggleSort, setItemsPerPage }
+  return { items, pagination, page, itemsPerPage, sort, typeFilter, loading, error, fetchPage, onToggled, toggleSort, setItemsPerPage, isAllEndpoint }
 }
