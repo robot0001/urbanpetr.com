@@ -77,6 +77,17 @@ export function useYoutubeHistory(endpoint: string) {
     }
   }
 
+  async function refreshItem(uuid: string) {
+    const headers: Record<string, string> = token.value ? { Authorization: `Bearer ${token.value}` } : {}
+    try {
+      const item = await $fetch<HistoryItem>(`${apiBase}/v1/history/youtube/${uuid}`, { headers })
+      const idx = items.value.findIndex(i => i.uuid === uuid)
+      if (idx !== -1) items.value[idx] = item
+    } catch (e: any) {
+      if (e?.response?.status === 401) login()
+    }
+  }
+
   function onToggled(uuid: string, newActive: boolean) {
     if (isActiveOnly && !newActive) {
       items.value = items.value.filter(i => i.uuid !== uuid)
@@ -100,5 +111,5 @@ export function useYoutubeHistory(endpoint: string) {
     fetchPage(1)
   }
 
-  return { items, pagination, page, itemsPerPage, sort, typeFilter, loading, error, fetchPage, onToggled, toggleSort, setItemsPerPage, isAllEndpoint }
+  return { items, pagination, page, itemsPerPage, sort, typeFilter, loading, error, fetchPage, refreshItem, onToggled, toggleSort, setItemsPerPage, isAllEndpoint }
 }
