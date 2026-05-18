@@ -12,7 +12,7 @@ const { data } = useFetch<{ items: HistoryItem[]; pagination: Pagination }>(
   { server: false }
 )
 
-const items = computed(() => data.value?.items ?? [])
+const items = computed(() => (data.value?.items ?? []).filter((item: HistoryItem) => item.video != null))
 const totalPages = computed(() => data.value?.pagination?.pages_total ?? 1)
 
 function prev() { if (page.value > 1) page.value-- }
