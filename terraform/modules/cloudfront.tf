@@ -28,6 +28,8 @@ module "cloudfront" {
   # Pass the Certificate (We need to define where this comes from!)
   acm_certificate_arn = local.site_certificate_arn
 
+  spa_routing = true
+
   custom_tags = local.common_tags
 }
 
