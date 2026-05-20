@@ -17,7 +17,13 @@ const showActivateDialog = ref(false)
 const editing = ref(false)
 const activateComment = ref('')
 const activateCustomTags = ref<string[]>([])
+const editVideoType = ref<'video' | 'short'>('video')
 const confirming = ref(false)
+
+const videoTypeOptions = [
+  { label: 'Video', value: 'video' },
+  { label: 'Short', value: 'short' },
+]
 
 async function enrich() {
   enriching.value = true
@@ -79,6 +85,7 @@ function startEdit() {
   editing.value = true
   activateComment.value = props.item.comment ?? ''
   activateCustomTags.value = [...props.item.custom_tags]
+  editVideoType.value = props.item.video.type
   showActivateDialog.value = true
 }
 
@@ -94,7 +101,7 @@ async function confirmActivate() {
       await $fetch(`${apiBase}/v1/history/youtube/${props.item.uuid}`, {
         method: 'PATCH',
         headers,
-        body,
+        body: { ...body, video_type: editVideoType.value },
       })
     } else {
       await $fetch(`${apiBase}/v1/history/youtube/${props.item.uuid}/activate`, {
@@ -223,6 +230,16 @@ Dialog(
       div(class="flex flex-col gap-1 min-w-0")
         p(class="font-medium line-clamp-2 leading-snug text-sm") {{ item.video.title }}
         p(v-if="item.video.channel" class="text-xs truncate" :style="{ color: 'var(--p-text-muted-color)' }") {{ item.video.channel }}
+    div(v-if="editing" class="flex flex-col gap-1")
+      label(class="text-sm font-medium") Type
+      SelectButton(
+        v-model="editVideoType"
+        :options="videoTypeOptions"
+        optionLabel="label"
+        optionValue="value"
+        :allowEmpty="false"
+        size="small"
+      )
     div(class="flex flex-col gap-1")
       label(class="text-sm font-medium") Comment
       Textarea(v-model="activateComment" :autoResize="true" rows="3" placeholder="Optional note..." class="w-full")

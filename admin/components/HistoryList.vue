@@ -4,7 +4,13 @@ const props = defineProps<{
   title: string
 }>()
 
-const { items, pagination, page, itemsPerPage, sort, loading, error, fetchPage, onToggled, toggleSort, setItemsPerPage } = useYoutubeHistory(props.endpoint)
+const { items, pagination, page, itemsPerPage, sort, typeFilter, loading, error, fetchPage, refreshItem, onToggled, toggleSort, setItemsPerPage, setTypeFilter, isAllEndpoint } = useYoutubeHistory(props.endpoint)
+
+const typeOptions = [
+  { label: 'All', value: 'all' },
+  { label: 'Videos', value: 'video' },
+  { label: 'Shorts', value: 'short' },
+]
 
 function onPage(e: { page: number; rows: number }) {
   if (e.rows !== itemsPerPage.value) {
@@ -21,13 +27,24 @@ div
     h1(class="text-xl font-semibold")
       | {{ title }}
       span(v-if="pagination" class="ml-2 text-sm font-normal" :style="{ color: 'var(--p-text-muted-color)' }") {{ pagination.items_total.toLocaleString() }} items
-    Button(
-      :label="sort === 'desc' ? 'Newest first' : 'Oldest first'"
-      severity="secondary"
-      size="small"
-      :icon="sort === 'desc' ? 'pi pi-sort-amount-down' : 'pi pi-sort-amount-up'"
-      @click="toggleSort"
-    )
+    div(class="flex items-center gap-3")
+      SelectButton(
+        v-if="isAllEndpoint"
+        :modelValue="typeFilter"
+        :options="typeOptions"
+        optionLabel="label"
+        optionValue="value"
+        :allowEmpty="false"
+        size="small"
+        @update:modelValue="setTypeFilter"
+      )
+      Button(
+        :label="sort === 'desc' ? 'Newest first' : 'Oldest first'"
+        severity="secondary"
+        size="small"
+        :icon="sort === 'desc' ? 'pi pi-sort-amount-down' : 'pi pi-sort-amount-up'"
+        @click="toggleSort"
+      )
 
   Paginator(
     v-if="pagination && pagination.pages_total > 1"
@@ -61,7 +78,7 @@ div
       :key="item.uuid"
       :item="item"
       @toggled="onToggled"
-      @enriched="fetchPage(page, false)"
+      @enriched="refreshItem"
     )
 
   div(v-else-if="!loading" class="py-12 text-center" :style="{ color: 'var(--p-text-muted-color)' }") No items.
