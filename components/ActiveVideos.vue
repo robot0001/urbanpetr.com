@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { HistoryItem, Pagination } from '~/types/youtube'
 
-const props = withDefaults(defineProps<{ itemsPerPage?: number }>(), { itemsPerPage: 10 })
+const props = withDefaults(defineProps<{ itemsPerPage?: number; layout?: 'list' | 'grid' }>(), { itemsPerPage: 10, layout: 'list' })
 
 const { public: { apiBase } } = useRuntimeConfig()
 
@@ -22,7 +22,47 @@ function next() { if (page.value < totalPages.value) page.value++ }
 <template lang="pug">
 Panel(header="Now Watching")
   div(v-if="!items.length" class="text-sm" style="color: var(--p-text-muted-color)") Nothing active right now.
-  div
+
+  div(v-else-if="layout === 'grid'" class="flex flex-wrap gap-4")
+    a(
+      v-for="item in items"
+      :key="item.uuid"
+      :href="item.video.url"
+      target="_blank"
+      rel="noopener"
+      class="group flex flex-col gap-2 min-w-[180px] flex-1"
+    )
+      img(
+        v-if="item.video.thumbnail_url"
+        :src="item.video.thumbnail_url"
+        :alt="item.video.title"
+        class="w-full aspect-video object-cover rounded"
+      )
+      div(class="flex flex-col gap-1")
+        div(
+          v-if="item.custom_tags.length"
+          class="flex flex-wrap gap-1"
+        )
+          span(
+            v-for="tag in item.custom_tags"
+            :key="tag"
+            class="text-xs px-2 py-0.5 rounded-full border"
+            style="border-color: var(--p-primary-color); color: var(--p-primary-300); background: color-mix(in srgb, var(--p-primary-color) 10%, transparent)"
+          ) {{ tag }}
+        p(class="text-xs font-semibold leading-snug line-clamp-2 group-hover:text-orange-400 transition-colors") {{ item.video.title }}
+        p(class="text-xs" style="color: var(--p-text-muted-color)")
+          span(v-if="item.video.channel") {{ item.video.channel }}
+          span(v-if="item.video.channel")  ·&nbsp;
+          span {{ item.watched_at.formatted }}
+          template(v-if="item.video.duration")
+            span  · {{ item.video.duration.formatted }}
+        p(
+          v-if="item.comment"
+          class="text-xs italic"
+          style="color: var(--p-primary-200)"
+        ) "{{ item.comment }}"
+
+  div(v-else)
     div(
       v-for="item in items"
       :key="item.uuid"
