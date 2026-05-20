@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { public: { apiBase } } = useRuntimeConfig()
+
 const { data: health, status: fetchStatus } = useFetch<{ status: string }>(`${apiBase}/health`, {
   server: false
 })
@@ -20,9 +21,10 @@ div(class="flex flex-col lg:flex-row gap-6")
           | &nbsp;has become a core part of how I work. Less about shortcuts, more about thinking differently about the whole development loop.
         p
           strong Open Claw
-          |  and 
+          |  and
           strong hermes-agent
           | &nbsp;are the kind of things you can't stop thinking about.
+
   div(class="flex flex-col gap-6 lg:w-1/3")
     Panel(header="Links")
       ul
@@ -33,4 +35,6 @@ div(class="flex flex-col lg:flex-row gap-6")
         span(
           :class="health?.status === 'ok' ? 'text-green-400' : fetchStatus === 'pending' ? 'text-gray-500' : 'text-red-400'"
         ) {{ health?.status === 'ok' ? '● ok' : fetchStatus === 'pending' ? '○ …' : '● unavailable' }}
+
+    ActiveVideos(:items-per-page="5")
 </template>
