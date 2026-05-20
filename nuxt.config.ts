@@ -17,6 +17,11 @@ const Theme = definePreset(Aura, {
 })
 
 export default defineNuxtConfig({
+  nitro: {
+    prerender: {
+      routes: ['/my-stuff', '/my-stuff/now-watching'],
+    },
+  },
   runtimeConfig: {
     public: {
       apiBase: 'https://api.urbanpetr.com'
