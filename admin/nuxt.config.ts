@@ -45,6 +45,11 @@ export default defineNuxtConfig({
       }
     }
   },
+  vite: {
+    server: {
+      allowedHosts: ['urbanpetr.home', 'api.urbanpetr.home'],
+    }
+  },
   app: {
     head: {
       htmlAttrs: { class: 'dark' },
