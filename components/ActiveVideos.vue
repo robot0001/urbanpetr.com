@@ -23,15 +23,30 @@ function next() { if (page.value < totalPages.value) page.value++ }
 Panel(header="Now Watching")
   div(v-if="!items.length" class="text-sm" style="color: var(--p-text-muted-color)") Nothing active right now.
 
-  div(v-else-if="layout === 'grid'" class="flex flex-wrap gap-4")
+  div(v-else-if="layout === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4")
     a(
       v-for="item in items"
       :key="item.uuid"
       :href="item.video.url"
       target="_blank"
       rel="noopener"
-      class="group flex flex-col gap-2 min-w-[180px] flex-1"
+      class="group flex flex-col gap-2"
     )
+      div(
+        v-if="item.comment || item.custom_tags.length"
+        class="flex flex-wrap items-baseline gap-x-1.5 gap-y-1"
+      )
+        span(
+          v-for="tag in item.custom_tags"
+          :key="tag"
+          class="text-xs px-2 py-0.5 rounded-full border flex-shrink-0"
+          style="border-color: var(--p-primary-color); color: var(--p-primary-300); background: color-mix(in srgb, var(--p-primary-color) 10%, transparent)"
+        ) {{ tag }}
+        span(
+          v-if="item.comment"
+          class="text-sm leading-relaxed italic"
+          style="color: var(--p-primary-200)"
+        ) "{{ item.comment }}"
       img(
         v-if="item.video.thumbnail_url"
         :src="item.video.thumbnail_url"
@@ -39,16 +54,6 @@ Panel(header="Now Watching")
         class="w-full aspect-video object-cover rounded"
       )
       div(class="flex flex-col gap-1")
-        div(
-          v-if="item.custom_tags.length"
-          class="flex flex-wrap gap-1"
-        )
-          span(
-            v-for="tag in item.custom_tags"
-            :key="tag"
-            class="text-xs px-2 py-0.5 rounded-full border"
-            style="border-color: var(--p-primary-color); color: var(--p-primary-300); background: color-mix(in srgb, var(--p-primary-color) 10%, transparent)"
-          ) {{ tag }}
         p(class="text-xs font-semibold leading-snug line-clamp-2 group-hover:text-orange-400 transition-colors") {{ item.video.title }}
         p(class="text-xs" style="color: var(--p-text-muted-color)")
           span(v-if="item.video.channel") {{ item.video.channel }}
@@ -56,11 +61,6 @@ Panel(header="Now Watching")
           span {{ item.watched_at.formatted }}
           template(v-if="item.video.duration")
             span  · {{ item.video.duration.formatted }}
-        p(
-          v-if="item.comment"
-          class="text-xs italic"
-          style="color: var(--p-primary-200)"
-        ) "{{ item.comment }}"
 
   div(v-else)
     div(
