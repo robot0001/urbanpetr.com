@@ -37,6 +37,7 @@ nav(class="sticky top-0 z-50 border-b backdrop-blur-sm bg-white/80 dark:bg-black
 
 main(class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12")
   slot
+</template>
 
 <style scoped>
 a {
@@ -46,4 +47,3 @@ a.router-link-exact-active {
   color: theme('colors.orange.500');
 }
 </style>
-</template>
