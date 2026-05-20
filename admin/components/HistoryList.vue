@@ -52,7 +52,7 @@ div
     :rows="itemsPerPage"
     :totalRecords="pagination.items_total"
     :first="(page - 1) * itemsPerPage"
-    :pageLinkSize="3"
+    :pageLinkSize="9"
     :rowsPerPageOptions="[10, 25, 50, 100]"
     @page="onPage"
   )
@@ -89,8 +89,19 @@ div
     :rows="itemsPerPage"
     :totalRecords="pagination.items_total"
     :first="(page - 1) * itemsPerPage"
-    :pageLinkSize="3"
+    :pageLinkSize="9"
     :rowsPerPageOptions="[10, 25, 50, 100]"
     @page="onPage"
   )
 </template>
+
+<style scoped>
+:deep(.p-paginator-page),
+:deep(.p-paginator-next),
+:deep(.p-paginator-prev),
+:deep(.p-paginator-first),
+:deep(.p-paginator-last) {
+  min-width: 2rem;
+  padding-inline: 0.35rem;
+}
+</style>
