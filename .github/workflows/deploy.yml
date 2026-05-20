@@ -49,6 +49,38 @@ jobs:
         working-directory: terraform
         run: tflint --recursive
 
+  typecheck:
+    name: Typecheck (web + admin)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Install web dependencies
+        run: npm ci
+
+      - name: Typecheck web
+        run: npx nuxt typecheck
+
+      - name: Install admin dependencies
+        working-directory: admin
+        run: npm ci
+
+      - name: Typecheck admin
+        working-directory: admin
+        run: npx nuxt typecheck
+
   terraform_plan_pr:
     name: Terraform plan (${{ matrix.name }})
     runs-on: ubuntu-latest
