@@ -12,7 +12,7 @@ const { data, status } = useFetch<{ items: HistoryItem[]; pagination: Pagination
   { server: false }
 )
 
-const loading = computed(() => status.value === 'pending')
+const loading = computed(() => data.value === null)
 
 const items = computed(() => (data.value?.items ?? []).filter((item: HistoryItem) => item.video != null))
 const totalPages = computed(() => data.value?.pagination?.pages_total ?? 1)
