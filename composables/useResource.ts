@@ -1,7 +1,7 @@
 import type { ItemResource } from '~/types/resource'
 
 export function useResource<T>() {
-  const resource = reactive<ItemResource<T>>({
+  const resource = shallowReactive<ItemResource<T>>({
     loading: true,
     data: null,
     response: null,
