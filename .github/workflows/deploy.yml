@@ -80,7 +80,8 @@ jobs:
 
       - name: Configure Git Credentials
         run: |
-          git config --global url."https://oauth2:${{ secrets.GLOBAL_MODULES_PAT }}@github.com".insteadOf "https://github.com"
+          echo "https://oauth2:${{ secrets.GLOBAL_MODULES_PAT }}@github.com" > ~/.git-credentials
+          git config --global credential.helper store
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
@@ -125,7 +126,8 @@ jobs:
 
       - name: Configure Git Credentials
         run: |
-          git config --global url."https://oauth2:${{ secrets.GLOBAL_MODULES_PAT }}@github.com".insteadOf "https://github.com"
+          echo "https://oauth2:${{ secrets.GLOBAL_MODULES_PAT }}@github.com" > ~/.git-credentials
+          git config --global credential.helper store
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
