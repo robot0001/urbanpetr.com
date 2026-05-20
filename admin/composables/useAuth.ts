@@ -13,6 +13,9 @@ async function generateVerifier(): Promise<string> {
 }
 
 async function generateChallenge(verifier: string): Promise<string> {
+  if (!crypto?.subtle) {
+    throw new Error('Web Crypto is unavailable — open admin over HTTPS or localhost')
+  }
   const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))
   return base64urlEncode(new Uint8Array(hash))
 }

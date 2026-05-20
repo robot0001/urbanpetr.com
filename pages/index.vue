@@ -33,8 +33,8 @@ div(class="flex flex-col lg:flex-row gap-6")
       div(class="mt-4 pt-4 border-t border-white/10 text-sm flex items-center gap-2")
         span(class="text-gray-400") API
         span(
-          :class="health?.status === 'ok' ? 'text-green-400' : fetchStatus === 'pending' ? 'text-gray-500' : 'text-red-400'"
-        ) {{ health?.status === 'ok' ? '● ok' : fetchStatus === 'pending' ? '○ …' : '● unavailable' }}
+          :class="health?.status === 'ok' ? 'text-green-400' : fetchStatus === 'error' ? 'text-red-400' : 'text-gray-500'"
+        ) {{ health?.status === 'ok' ? '● ok' : fetchStatus === 'error' ? '● unavailable' : '○ …' }}
 
     ActiveVideos(:items-per-page="5")
 </template>
