@@ -4,7 +4,7 @@ const props = defineProps<{
   title: string
 }>()
 
-const { items, pagination, page, itemsPerPage, sort, typeFilter, loading, error, fetchPage, refreshItem, onToggled, toggleSort, setItemsPerPage, isAllEndpoint } = useYoutubeHistory(props.endpoint)
+const { items, pagination, page, itemsPerPage, sort, typeFilter, loading, error, fetchPage, refreshItem, onToggled, toggleSort, setItemsPerPage, setTypeFilter, isAllEndpoint } = useYoutubeHistory(props.endpoint)
 
 const typeOptions = [
   { label: 'All', value: 'all' },
@@ -30,12 +30,13 @@ div
     div(class="flex items-center gap-3")
       SelectButton(
         v-if="isAllEndpoint"
-        v-model="typeFilter"
+        :modelValue="typeFilter"
         :options="typeOptions"
         optionLabel="label"
         optionValue="value"
         :allowEmpty="false"
         size="small"
+        @update:modelValue="setTypeFilter"
       )
       Button(
         :label="sort === 'desc' ? 'Newest first' : 'Oldest first'"
