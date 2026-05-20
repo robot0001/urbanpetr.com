@@ -12,7 +12,7 @@ locals {
 
 # 2. Call the new Module
 module "cloudfront" {
-  source = "github.com/robot0001/urbanpetr-foundation//modules/cloudfront_website?ref=v1.2.0"
+  source = "github.com/robot0001/urbanpetr-foundation//modules/cloudfront_website?ref=v1.3.3"
 
   project_name = var.project_name
   environment  = var.environment
@@ -27,6 +27,8 @@ module "cloudfront" {
 
   # Pass the Certificate (We need to define where this comes from!)
   acm_certificate_arn = local.site_certificate_arn
+
+  spa_routing = true
 
   custom_tags = local.common_tags
 }
