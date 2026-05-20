@@ -2,6 +2,7 @@ import Aura from '@primeuix/themes/aura'
 import { definePreset } from '@primeuix/themes'
 
 const Theme = definePreset(Aura, {})
+const isDev = process.env.NODE_ENV === 'development'
 
 export default defineNuxtConfig({
   ssr: false,
@@ -47,7 +48,7 @@ export default defineNuxtConfig({
   },
   vite: {
     server: {
-      allowedHosts: ['urbanpetr.home', 'api.urbanpetr.home'],
+      allowedHosts: isDev ? ['urbanpetr.home', 'api.urbanpetr.home'] : [],
     }
   },
   app: {
