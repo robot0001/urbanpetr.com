@@ -71,16 +71,18 @@ export function useYoutubeHistory(endpoint: string) {
   }
 
   function buildUrlState() {
-    return {
-      page: page.value,
-      itemsPerPage: itemsPerPage.value,
-      sort: sort.value,
-      ...(isAllEndpoint ? { typeFilter: typeFilter.value } : {}),
-    }
+    const state: Record<string, unknown> = {}
+    if (page.value !== 1) state.page = page.value
+    if (itemsPerPage.value !== 25) state.itemsPerPage = itemsPerPage.value
+    if (sort.value !== 'desc') state.sort = sort.value
+    if (isAllEndpoint && typeFilter.value !== 'video') state.typeFilter = typeFilter.value
+    return state
   }
 
   function pushUrlState() {
-    router.push({ query: { q: encodeURIComponent(JSON.stringify(buildUrlState())) } })
+    const state = buildUrlState()
+    const query = Object.keys(state).length > 0 ? { q: encodeURIComponent(JSON.stringify(state)) } : {}
+    router.push({ query })
   }
 
   async function doFetch() {
@@ -102,11 +104,7 @@ export function useYoutubeHistory(endpoint: string) {
   }
 
   watch(() => route.query.q, () => {
-    const state = parseUrlState()
-    if (!state) {
-      router.replace({ query: { q: encodeURIComponent(JSON.stringify(buildUrlState())) } })
-      return
-    }
+    const state = parseUrlState() ?? {}
     page.value = state.page ?? 1
     itemsPerPage.value = state.itemsPerPage ?? 25
     sort.value = state.sort ?? 'desc'
