@@ -59,6 +59,11 @@ export default defineNuxtConfig({
       }
     }
   },
+  vite: {
+    server: {
+      allowedHosts: process.env.VITE_ALLOWED_HOSTS?.split(',') ?? [],
+    }
+  },
   app: {
     head: {
       htmlAttrs: { class: 'dark' },
