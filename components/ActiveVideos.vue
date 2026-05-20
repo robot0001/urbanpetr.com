@@ -7,15 +7,19 @@ const { public: { apiBase } } = useRuntimeConfig()
 
 const page = ref(1)
 
-const loading = ref(true)
+type YoutubeHistoryResponse = { items: HistoryItem[]; pagination: Pagination }
 
-const { data } = useFetch<{ items: HistoryItem[]; pagination: Pagination }>(
-  () => `${apiBase}/v1/history/youtube?page=${page.value}&items_per_page=${props.itemsPerPage}&sort=desc`,
-  { server: false, onResponse() { loading.value = false }, onResponseError() { loading.value = false } }
-)
+const { resource: itemResource, load } = useResource<YoutubeHistoryResponse>()
 
-const items = computed(() => (data.value?.items ?? []).filter((item: HistoryItem) => item.video != null))
-const totalPages = computed(() => data.value?.pagination?.pages_total ?? 1)
+function fetchItems() {
+  return load(`${apiBase}/v1/history/youtube?page=${page.value}&items_per_page=${props.itemsPerPage}&sort=desc`)
+}
+
+onMounted(fetchItems)
+watch(page, fetchItems)
+
+const items = computed(() => (itemResource.data?.items ?? []).filter((item: HistoryItem) => item.video != null))
+const totalPages = computed(() => itemResource.data?.pagination?.pages_total ?? 1)
 
 function prev() { if (page.value > 1) page.value-- }
 function next() { if (page.value < totalPages.value) page.value++ }
@@ -23,7 +27,7 @@ function next() { if (page.value < totalPages.value) page.value++ }
 
 <template lang="pug">
 Panel(header="Now Watching")
-  div(v-if="loading && layout === 'grid'" class="videos-grid")
+  div(v-if="itemResource.loading && layout === 'grid'" class="videos-grid")
     div(v-for="n in 3" :key="n" class="video-card")
       div
       div(class="w-full aspect-video rounded animate-pulse" style="background: var(--p-surface-700)")
@@ -31,7 +35,7 @@ Panel(header="Now Watching")
         div(class="h-3 w-3/4 rounded animate-pulse" style="background: var(--p-surface-700)")
         div(class="h-3 w-1/2 rounded animate-pulse" style="background: var(--p-surface-700)")
 
-  div(v-else-if="!loading && !items.length" class="text-sm" style="color: var(--p-text-muted-color)") Nothing active right now.
+  div(v-else-if="!itemResource.loading && !items.length" class="text-sm" style="color: var(--p-text-muted-color)") Nothing active right now.
 
   div(v-else-if="layout === 'grid'" class="videos-grid")
     a(
