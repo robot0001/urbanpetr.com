@@ -14,7 +14,7 @@ Personal website at [urbanpetr.com](https://urbanpetr.com) and admin panel at [a
 ## Stack
 
 - **Frontend** — [Nuxt 3](https://nuxt.com) (Vue 3), Tailwind CSS, PrimeVue
-- **Infrastructure** — AWS S3 + CloudFront (OAC), managed with Terraform
+- **Infrastructure** — AWS S3 + CloudFront (OAC) + shared WAF, managed with Terraform
 - **Auth** — AWS Cognito (OAuth2 PKCE, Google identity provider)
 - **CI/CD** — GitHub Actions (deploy on merge to `main`; ephemeral PR envs via `stage` label)
 
@@ -85,6 +85,8 @@ Merging a PR into `main` triggers a GitHub Actions workflow that:
 2. Runs `nuxt generate` for both apps
 3. Syncs static files to their respective S3 buckets
 4. Invalidates the CloudFront cache
+
+The production CloudFront distribution is protected by a shared WAF WebACL (IP reputation list, common rule set, 1000 req/5 min per-IP rate limit). The WAF is provisioned by the `urbanpetr-api` Terraform state and referenced here via `terraform_remote_state`.
 
 ### Staging (per-PR ephemeral environments)
 
