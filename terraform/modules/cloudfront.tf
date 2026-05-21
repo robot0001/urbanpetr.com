@@ -12,7 +12,7 @@ locals {
 
 # 2. Call the new Module
 module "cloudfront" {
-  source = "github.com/robot0001/urbanpetr-foundation//modules/cloudfront_website?ref=v1.3.4"
+  source = "github.com/robot0001/urbanpetr-foundation//modules/cloudfront_website?ref=v1.4.0"
 
   project_name = var.project_name
   environment  = var.environment
@@ -29,6 +29,7 @@ module "cloudfront" {
   acm_certificate_arn = local.site_certificate_arn
 
   spa_routing = true
+  web_acl_id  = data.terraform_remote_state.api.outputs.waf_arn
 
   custom_tags = local.common_tags
 }

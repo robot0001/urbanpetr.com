@@ -8,3 +8,13 @@ data "terraform_remote_state" "foundation" {
     region = "eu-central-1"
   }
 }
+
+data "terraform_remote_state" "api" {
+  backend = "s3"
+
+  config = {
+    bucket = "urbanpetr-tf-state"
+    key    = "urbanpetr_api/prod/terraform.tfstate"
+    region = "eu-central-1"
+  }
+}
