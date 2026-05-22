@@ -86,7 +86,9 @@ Merging a PR into `main` triggers a GitHub Actions workflow that:
 3. Syncs static files to their respective S3 buckets
 4. Invalidates the CloudFront cache
 
-The production CloudFront distribution is protected by a shared WAF WebACL (IP reputation list, common rule set, 1000 req/5 min per-IP rate limit). The WAF is provisioned by the `urbanpetr-api` Terraform state and referenced here via `terraform_remote_state`.
+The production CloudFront distributions (website + admin) share a WAF WebACL with the API — IP reputation list, common rule set, per-IP rate limit, and a kill-switch block rule. The WAF is provisioned by the `urbanpetr-api` Terraform state and referenced here via `terraform_remote_state`.
+
+See the [DDoS Protection & Billing Safety](https://github.com/robot0001/urbanpetr-platform/blob/main/docs/ddos-protection.md) reference doc for the full protection architecture including the automatic kill switch.
 
 ### Staging (per-PR ephemeral environments)
 
