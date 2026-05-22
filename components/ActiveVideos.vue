@@ -159,7 +159,7 @@ Panel(header="Now Watching")
 
   div(
     v-if="totalPages > 1"
-    class="flex items-center justify-center gap-4 mt-5 pt-4 border-t border-white/10"
+    class="flex items-center justify-end gap-4 mt-5 pt-4 border-t border-white/10"
   )
     button(
       @click="prev"
