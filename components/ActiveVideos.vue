@@ -54,6 +54,26 @@ function next() { if (page.value < totalPages.value) pushPage(page.value + 1) }
 
 <template lang="pug">
 Panel(header="Now Watching")
+  div(
+    v-if="totalPages > 1"
+    class="flex items-center justify-center gap-4 mb-5 pb-4 border-b border-white/10"
+  )
+    button(
+      @click="prev"
+      :disabled="page === 1"
+      class="transition-opacity"
+      :class="page === 1 ? 'opacity-25 cursor-default' : 'opacity-70 hover:opacity-100'"
+    )
+      i(class="pi pi-chevron-left text-xs")
+    span(class="text-xs tabular-nums" style="color: var(--p-text-muted-color)") {{ page }} / {{ totalPages }}
+    button(
+      @click="next"
+      :disabled="page === totalPages"
+      class="transition-opacity"
+      :class="page === totalPages ? 'opacity-25 cursor-default' : 'opacity-70 hover:opacity-100'"
+    )
+      i(class="pi pi-chevron-right text-xs")
+
   div(v-if="itemResource.loading && layout === 'grid'" class="videos-grid")
     div(v-for="n in 3" :key="n" class="video-card")
       div
