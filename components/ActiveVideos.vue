@@ -1,32 +1,77 @@
 <script setup lang="ts">
 import type { HistoryItem, Pagination } from '~/types/youtube'
 
-const props = withDefaults(defineProps<{ itemsPerPage?: number; layout?: 'list' | 'grid' }>(), { itemsPerPage: 10, layout: 'list' })
+const props = withDefaults(defineProps<{ itemsPerPage?: number; layout?: 'list' | 'grid'; queryKey?: string }>(), { itemsPerPage: 10, layout: 'list', queryKey: 'now_watching' })
 
 const { public: { apiBase } } = useRuntimeConfig()
-
-const page = ref(1)
+const route = useRoute()
+const router = useRouter()
 
 type YoutubeHistoryResponse = { items: HistoryItem[]; pagination: Pagination }
 
 const { resource: itemResource, load } = useResource<YoutubeHistoryResponse>()
 
+function pageFromUrl(): number {
+  const raw = route.query[props.queryKey]
+  if (!raw || typeof raw !== 'string') return 1
+  try {
+    const parsed = JSON.parse(decodeURIComponent(raw))
+    return typeof parsed.page === 'number' ? parsed.page : 1
+  } catch {
+    return 1
+  }
+}
+
+const page = ref(pageFromUrl())
+
 function fetchItems() {
   return load(`${apiBase}/v1/history/youtube?page=${page.value}&items_per_page=${props.itemsPerPage}&sort=desc`)
 }
 
+function pushPage(p: number) {
+  const query = { ...route.query }
+  if (p <= 1) {
+    delete query[props.queryKey]
+  } else {
+    query[props.queryKey] = encodeURIComponent(JSON.stringify({ page: p }))
+  }
+  router.push({ query })
+}
+
 onMounted(fetchItems)
-watch(page, fetchItems)
+
+watch(() => route.query[props.queryKey], () => {
+  page.value = pageFromUrl()
+  fetchItems()
+})
 
 const items = computed(() => (itemResource.data?.items ?? []).filter((item: HistoryItem) => item.video != null))
 const totalPages = computed(() => itemResource.data?.pagination?.pages_total ?? 1)
 
-function prev() { if (page.value > 1) page.value-- }
-function next() { if (page.value < totalPages.value) page.value++ }
+function prev() { if (page.value > 1) pushPage(page.value - 1) }
+function next() { if (page.value < totalPages.value) pushPage(page.value + 1) }
 </script>
 
 <template lang="pug">
 Panel(header="Now Watching")
+  template(#icons)
+    div(v-if="totalPages > 1" class="flex items-center gap-3")
+      button(
+        @click="prev"
+        :disabled="page === 1"
+        class="transition-opacity"
+        :class="page === 1 ? 'opacity-25 cursor-default' : 'opacity-70 hover:opacity-100'"
+      )
+        i(class="pi pi-chevron-left text-xs")
+      span(class="text-xs tabular-nums" style="color: var(--p-text-muted-color)") {{ page }} / {{ totalPages }}
+      button(
+        @click="next"
+        :disabled="page === totalPages"
+        class="transition-opacity"
+        :class="page === totalPages ? 'opacity-25 cursor-default' : 'opacity-70 hover:opacity-100'"
+      )
+        i(class="pi pi-chevron-right text-xs")
+
   div(v-if="itemResource.loading && layout === 'grid'" class="videos-grid")
     div(v-for="n in 3" :key="n" class="video-card")
       div
@@ -114,7 +159,7 @@ Panel(header="Now Watching")
 
   div(
     v-if="totalPages > 1"
-    class="flex items-center justify-center gap-4 mt-5 pt-4 border-t border-white/10"
+    class="flex items-center justify-end gap-4 mt-5 pt-4 border-t border-white/10"
   )
     button(
       @click="prev"
