@@ -4,12 +4,17 @@ const router = useRouter()
 const error = ref<string | null>(null)
 
 onMounted(() => {
-  if (isAuthenticated.value) router.replace('/')
+  if (isAuthenticated.value) {
+    const redirect = router.currentRoute.value.query.redirect as string | undefined
+    router.replace(redirect || '/')
+  }
 })
 
 async function handleLogin() {
   error.value = null
   try {
+    const redirect = router.currentRoute.value.query.redirect as string | undefined
+    if (redirect) sessionStorage.setItem('auth_redirect', redirect)
     await login()
   } catch (e: any) {
     error.value = e?.message ?? 'Sign-in failed — please try again.'
