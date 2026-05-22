@@ -1,0 +1,29 @@
+@font-face {
+    font-family: 'primeicons';
+    font-display: swap;
+    src: url('../../node_modules/primeicons/fonts/primeicons.woff2') format('woff2'),
+         url('../../node_modules/primeicons/fonts/primeicons.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.pi {
+    font-family: 'primeicons';
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    display: inline-block;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.pi:before {
+    backface-visibility: hidden;
+}
+
+.pi-chevron-down:before {
+    content: "\e902";
+}
