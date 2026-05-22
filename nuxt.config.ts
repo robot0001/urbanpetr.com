@@ -17,6 +17,9 @@ const Theme = definePreset(Aura, {
 })
 
 export default defineNuxtConfig({
+  experimental: {
+    appManifest: false,
+  },
   nitro: {
     prerender: {
       routes: ['/my-stuff', '/my-stuff/now-watching'],

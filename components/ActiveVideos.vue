@@ -7,15 +7,9 @@ const { public: { apiBase } } = useRuntimeConfig()
 const route = useRoute()
 const router = useRouter()
 
-const page = ref(1)
-
 type YoutubeHistoryResponse = { items: HistoryItem[]; pagination: Pagination }
 
 const { resource: itemResource, load } = useResource<YoutubeHistoryResponse>()
-
-function fetchItems() {
-  return load(`${apiBase}/v1/history/youtube?page=${page.value}&items_per_page=${props.itemsPerPage}&sort=desc`)
-}
 
 function pageFromUrl(): number {
   const raw = route.query[props.queryKey]
@@ -28,6 +22,12 @@ function pageFromUrl(): number {
   }
 }
 
+const page = ref(pageFromUrl())
+
+function fetchItems() {
+  return load(`${apiBase}/v1/history/youtube?page=${page.value}&items_per_page=${props.itemsPerPage}&sort=desc`)
+}
+
 function pushPage(p: number) {
   const query = { ...route.query }
   if (p <= 1) {
@@ -38,10 +38,12 @@ function pushPage(p: number) {
   router.push({ query })
 }
 
+onMounted(fetchItems)
+
 watch(() => route.query[props.queryKey], () => {
   page.value = pageFromUrl()
   fetchItems()
-}, { immediate: true })
+})
 
 const items = computed(() => (itemResource.data?.items ?? []).filter((item: HistoryItem) => item.video != null))
 const totalPages = computed(() => itemResource.data?.pagination?.pages_total ?? 1)
