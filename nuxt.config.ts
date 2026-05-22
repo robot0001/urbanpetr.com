@@ -34,7 +34,7 @@ export default defineNuxtConfig({
   gtag: {
     id: process.env.NUXT_PUBLIC_GTAG_ID
   },
-  css: ['~/assets/css/global.css', '~/assets/css/background.css', 'primeicons/primeicons.css'],
+  css: ['~/assets/css/global.css', '~/assets/css/background.css', '~/assets/css/primeicons-minimal.css'],
   primevue: {
     components: {
       include: ['Panel', 'Card']
@@ -75,6 +75,11 @@ export default defineNuxtConfig({
       title: 'UrbanPetr.com',
       meta: [
         { name: 'description', content: "Petr Urban's personal website. Portfolio, experience, and contact information." }
+      ],
+      link: [
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' },
       ]
     }
   }
