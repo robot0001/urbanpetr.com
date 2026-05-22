@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { HistoryItem, Pagination } from '~/types/youtube'
 
-const props = withDefaults(defineProps<{ itemsPerPage?: number; layout?: 'list' | 'grid' }>(), { itemsPerPage: 10, layout: 'list' })
+const props = withDefaults(defineProps<{ itemsPerPage?: number; layout?: 'list' | 'grid'; queryKey?: string }>(), { itemsPerPage: 10, layout: 'list', queryKey: 'now_watching' })
 
 const { public: { apiBase } } = useRuntimeConfig()
+const route = useRoute()
+const router = useRouter()
 
 const page = ref(1)
 
@@ -15,14 +17,37 @@ function fetchItems() {
   return load(`${apiBase}/v1/history/youtube?page=${page.value}&items_per_page=${props.itemsPerPage}&sort=desc`)
 }
 
-onMounted(fetchItems)
-watch(page, fetchItems)
+function pageFromUrl(): number {
+  const raw = route.query[props.queryKey]
+  if (!raw || typeof raw !== 'string') return 1
+  try {
+    const parsed = JSON.parse(decodeURIComponent(raw))
+    return typeof parsed.page === 'number' ? parsed.page : 1
+  } catch {
+    return 1
+  }
+}
+
+function pushPage(p: number) {
+  const query = { ...route.query }
+  if (p <= 1) {
+    delete query[props.queryKey]
+  } else {
+    query[props.queryKey] = encodeURIComponent(JSON.stringify({ page: p }))
+  }
+  router.push({ query })
+}
+
+watch(() => route.query[props.queryKey], () => {
+  page.value = pageFromUrl()
+  fetchItems()
+}, { immediate: true })
 
 const items = computed(() => (itemResource.data?.items ?? []).filter((item: HistoryItem) => item.video != null))
 const totalPages = computed(() => itemResource.data?.pagination?.pages_total ?? 1)
 
-function prev() { if (page.value > 1) page.value-- }
-function next() { if (page.value < totalPages.value) page.value++ }
+function prev() { if (page.value > 1) pushPage(page.value - 1) }
+function next() { if (page.value < totalPages.value) pushPage(page.value + 1) }
 </script>
 
 <template lang="pug">
