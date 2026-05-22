@@ -24,6 +24,14 @@
     backface-visibility: hidden;
 }
 
+.pi-chevron-left:before {
+    content: "\e900";
+}
+
+.pi-chevron-right:before {
+    content: "\e901";
+}
+
 .pi-chevron-down:before {
     content: "\e902";
 }
