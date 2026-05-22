@@ -21,7 +21,9 @@ onMounted(async () => {
 
   try {
     await exchangeCode(code)
-    await router.replace('/')
+    const redirect = sessionStorage.getItem('auth_redirect')
+    sessionStorage.removeItem('auth_redirect')
+    await router.replace(redirect || '/')
   } catch (e: any) {
     const msg = e?.message ?? 'Token exchange failed — please try again.'
     console.error('[auth-callback] token exchange failed:', e)
