@@ -19,7 +19,6 @@ const Theme = definePreset(Aura, {
 export default defineNuxtConfig({
   experimental: {
     appManifest: false,
-    inlineStyles: true,
   },
   nitro: {
     prerender: {
