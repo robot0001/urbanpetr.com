@@ -23,9 +23,11 @@ function pageFromUrl(): number {
 }
 
 const page = ref(pageFromUrl())
+const isMobile = ref(false)
+const effectiveItemsPerPage = computed(() => isMobile.value ? 20 : props.itemsPerPage)
 
 function fetchItems() {
-  return load(`${apiBase}/v1/history/youtube?page=${page.value}&items_per_page=${props.itemsPerPage}&sort=desc`)
+  return load(`${apiBase}/v1/history/youtube?page=${page.value}&items_per_page=${effectiveItemsPerPage.value}&sort=desc`)
 }
 
 function pushPage(p: number) {
@@ -38,7 +40,18 @@ function pushPage(p: number) {
   router.push({ query })
 }
 
-onMounted(fetchItems)
+onMounted(() => {
+  const check = () => { isMobile.value = window.innerWidth < 640 }
+  check()
+  window.addEventListener('resize', check)
+  onUnmounted(() => window.removeEventListener('resize', check))
+  fetchItems()
+})
+
+watch(isMobile, () => {
+  page.value = 1
+  fetchItems()
+})
 
 watch(() => route.query[props.queryKey], () => {
   page.value = pageFromUrl()
