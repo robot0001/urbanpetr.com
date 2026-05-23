@@ -4,7 +4,7 @@ const props = defineProps<{
   title: string
 }>()
 
-const { items, pagination, page, itemsPerPage, sort, typeFilter, loading, error, fetchPage, refreshItem, onToggled, toggleSort, setItemsPerPage, setTypeFilter, isAllEndpoint } = useYoutubeHistory(props.endpoint)
+const { items, pagination, page, itemsPerPage, sort, typeFilter, loading, error, fetchPage, refreshPage, refreshItem, onToggled, toggleSort, setItemsPerPage, setTypeFilter, isAllEndpoint } = useYoutubeHistory(props.endpoint)
 
 const typeOptions = [
   { label: 'All', value: 'all' },
@@ -79,6 +79,7 @@ div
       :item="item"
       @toggled="onToggled"
       @enriched="refreshItem"
+      @batchEnriched="refreshPage"
     )
 
   div(v-else-if="!loading" class="py-12 text-center" :style="{ color: 'var(--p-text-muted-color)' }") No items.

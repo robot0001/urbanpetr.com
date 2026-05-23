@@ -5,6 +5,7 @@ const props = defineProps<{ item: HistoryItem }>()
 const emit = defineEmits<{
   (e: 'toggled', uuid: string, newActive: boolean): void
   (e: 'enriched', uuid: string): void
+  (e: 'batchEnriched'): void
 }>()
 
 const { public: { apiBase } } = useRuntimeConfig()
@@ -32,7 +33,7 @@ async function enrich() {
       method: 'POST',
       headers: token.value ? { Authorization: `Bearer ${token.value}` } : {},
     })
-    emit('enriched', props.item.uuid)
+    emit('batchEnriched')
   } catch (e: any) {
     if (e?.response?.status === 401) login()
   } finally {

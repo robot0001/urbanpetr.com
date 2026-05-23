@@ -157,6 +157,6 @@ export function useYoutubeHistory(endpoint: string) {
 
   return {
     items, pagination, page, itemsPerPage, sort, typeFilter, loading, error,
-    fetchPage, refreshItem, onToggled, toggleSort, setItemsPerPage, setTypeFilter, isAllEndpoint,
+    fetchPage, refreshPage: doFetch, refreshItem, onToggled, toggleSort, setItemsPerPage, setTypeFilter, isAllEndpoint,
   }
 }
