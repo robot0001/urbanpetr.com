@@ -14,8 +14,7 @@ async function handleLogin() {
   error.value = null
   try {
     const redirect = router.currentRoute.value.query.redirect as string | undefined
-    if (redirect) sessionStorage.setItem('auth_redirect', redirect)
-    await login()
+    await login(redirect)
   } catch (e: any) {
     error.value = e?.message ?? 'Sign-in failed — please try again.'
   }

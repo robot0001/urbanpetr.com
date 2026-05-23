@@ -44,7 +44,7 @@ export function useAuth() {
   const isAuthenticated = computed(() => !!token.value)
   const isConfigured = !!(domain && clientId)
 
-  async function login() {
+  async function login(redirectPath?: string) {
     if (!domain || !clientId) throw new Error('Auth not configured — missing Cognito env vars')
     const verifier = await generateVerifier()
     const challenge = await generateChallenge(verifier)
@@ -58,6 +58,7 @@ export function useAuth() {
       code_challenge_method: 'S256',
       identity_provider: 'Google',
     })
+    if (redirectPath) params.set('state', redirectPath)
     window.location.href = `https://${domain}/oauth2/authorize?${params}`
   }
 

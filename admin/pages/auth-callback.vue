@@ -7,6 +7,7 @@ const error = ref<string | null>(null)
 
 onMounted(async () => {
   const code = route.query.code as string | undefined
+  const state = route.query.state as string | undefined
   const errorParam = route.query.error as string | undefined
 
   if (errorParam) {
@@ -21,9 +22,8 @@ onMounted(async () => {
 
   try {
     await exchangeCode(code)
-    const redirect = sessionStorage.getItem('auth_redirect')
-    sessionStorage.removeItem('auth_redirect')
-    await router.replace(redirect || '/')
+    const redirect = state && state.startsWith('/') && !state.startsWith('//') ? state : '/'
+    await router.replace(redirect)
   } catch (e: any) {
     const msg = e?.message ?? 'Token exchange failed — please try again.'
     console.error('[auth-callback] token exchange failed:', e)
