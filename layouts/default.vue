@@ -73,8 +73,7 @@ div(
         div(class="flex items-center gap-3")
           div(class="w-8 h-8 bg-flat-yellow text-flat-dark flex items-center justify-center font-bold font-display text-[11px] border-2 border-flat-dark shadow-[2px_2px_0px_rgba(255,255,255,1)]") P
           span(class="font-black text-white uppercase tracking-widest") URBANPETR.COM
-        p(class="text-zinc-500 font-sans font-bold text-xs") Flat brutalist design. Pure CSS entry animation.
-        span © 2026 Petr Urban
+span © 2026 Petr Urban
 </template>
 
 <style scoped>
