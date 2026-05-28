@@ -36,7 +36,7 @@ div(
 
     header(class="sticky top-0 z-40 bg-flat-cream border-b-[2px] border-flat-dark shadow-[0_4px_0px_rgba(17,26,46,0.08)]")
       div(class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4")
-        div(class="flex items-center gap-3 flex-shrink-0")
+        NuxtLink(to="/" class="flex items-center gap-3 flex-shrink-0 no-underline")
           div(class="w-8 h-8 bg-flat-yellow border-2 border-flat-dark flex items-center justify-center font-display font-bold text-flat-dark text-sm shadow-[2px_2px_0px_rgba(17,26,46,1)]") P
           div(class="flex flex-col leading-tight")
             span(class="font-display font-black text-xs tracking-widest uppercase text-flat-dark") URBANPETR.COM
