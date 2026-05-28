@@ -2,43 +2,31 @@
 const route = useRoute()
 const myStuffOpen = ref(false)
 const introActive = ref(true)
-const animationKey = ref(0)
 
 const isMyStuff = computed(() => route.path.startsWith('/my-stuff'))
 watch(() => route.path, () => { myStuffOpen.value = false })
 
 let timer: ReturnType<typeof setTimeout> | null = null
 
-function startIntroTimer() {
-  if (timer) clearTimeout(timer)
+onMounted(() => {
   timer = setTimeout(() => { introActive.value = false }, 4550)
-}
+})
 
-onMounted(startIntroTimer)
 onUnmounted(() => { if (timer) clearTimeout(timer) })
-
-function replayIntro() {
-  window.scrollTo({ top: 0 })
-  introActive.value = true
-  animationKey.value++
-  startIntroTimer()
-}
 </script>
 
 <template lang="pug">
 div(
   id="app-container"
-  :class="[introActive ? 'bg-flat-dark' : 'bg-flat-cream', 'min-h-screen font-sans relative overflow-x-hidden transition-colors duration-500']"
+  :class="[introActive ? 'bg-flat-dark' : 'bg-flat-cream', 'min-h-screen font-sans relative transition-colors duration-500']"
 )
   div(
     v-if="introActive"
-    :key="`labels-${animationKey}`"
     class="fixed inset-0 z-40 pointer-events-none flex items-center justify-center"
   )
     div(class="animate-overlay-decay absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[calc(50%+45px)] text-zinc-500/80 font-mono text-[11px] tracking-[0.25em] uppercase text-center w-full") Initiating Smooth Ease-In-Out Zoom
 
   div(
-    :key="`blog-${animationKey}`"
     :class="introActive ? 'fixed inset-0 w-screen h-screen overflow-hidden pointer-events-none origin-center bg-flat-cream z-30 animate-portal-scale' : 'relative bg-flat-cream min-h-screen'"
   )
     div(
@@ -47,7 +35,7 @@ div(
     )
 
     header(class="sticky top-0 z-40 bg-flat-cream border-b-[2px] border-flat-dark shadow-[0_4px_0px_rgba(17,26,46,0.08)]")
-      div(class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between gap-4")
+      div(class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4")
         div(class="flex items-center gap-3 flex-shrink-0")
           div(class="w-8 h-8 bg-flat-yellow border-2 border-flat-dark flex items-center justify-center font-display font-bold text-flat-dark text-sm shadow-[2px_2px_0px_rgba(17,26,46,1)]") P
           div(class="flex flex-col leading-tight")
@@ -77,19 +65,11 @@ div(
                 @click="myStuffOpen = false"
               ) NOW WATCHING
 
-        button(
-          @click="replayIntro"
-          class="flex items-center gap-2 bg-flat-yellow hover:bg-white text-flat-dark px-3 py-2 border-2 border-flat-dark font-mono text-[11px] font-black tracking-widest transition-all cursor-pointer shadow-[3px_3px_0px_rgba(17,26,46,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none flex-shrink-0"
-          title="Replay entry animation"
-        )
-          span(class="animate-spin-hover") ↺
-          span(class="hidden sm:inline") REPLAY INTRO
-
     main(class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12")
       slot
 
-    footer(class="bg-flat-dark text-zinc-400 py-10 px-6 border-t-[3px] border-flat-dark mt-12")
-      div(class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs font-mono")
+    footer(class="bg-flat-dark text-zinc-400 py-10 border-t-[3px] border-flat-dark mt-12")
+      div(class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-xs font-mono")
         div(class="flex items-center gap-3")
           div(class="w-8 h-8 bg-flat-yellow text-flat-dark flex items-center justify-center font-bold font-display text-[11px] border-2 border-flat-dark shadow-[2px_2px_0px_rgba(255,255,255,1)]") P
           span(class="font-black text-white uppercase tracking-widest") URBANPETR.COM
