@@ -66,9 +66,112 @@ function next() { if (page.value < totalPages.value) pushPage(page.value + 1) }
 </script>
 
 <template lang="pug">
-Panel(header="Now Watching")
-  template(#icons)
+div(class="bg-white border-[2px] border-flat-dark shadow-[6px_6px_0px_rgba(17,26,46,1)]")
+  div(class="flex items-center justify-between px-6 py-4 border-b-[2px] border-flat-dark")
+    h3(class="font-display font-black text-base tracking-tight text-flat-dark") Now Watching
     div(v-if="totalPages > 1" class="flex items-center gap-3")
+      button(
+        @click="prev"
+        :disabled="page === 1"
+        class="transition-opacity font-mono text-xs font-bold"
+        :class="page === 1 ? 'opacity-25 cursor-default' : 'opacity-70 hover:opacity-100'"
+      )
+        i(class="pi pi-chevron-left text-xs")
+      span(class="text-xs font-mono tabular-nums text-zinc-500") {{ page }} / {{ totalPages }}
+      button(
+        @click="next"
+        :disabled="page === totalPages"
+        class="transition-opacity font-mono text-xs font-bold"
+        :class="page === totalPages ? 'opacity-25 cursor-default' : 'opacity-70 hover:opacity-100'"
+      )
+        i(class="pi pi-chevron-right text-xs")
+
+  div(class="px-6 py-5")
+    div(v-if="itemResource.loading && layout === 'grid'" class="videos-grid")
+      div(v-for="n in 3" :key="n" class="video-card")
+        div
+        div(class="w-full aspect-video rounded-none animate-pulse bg-flat-sand/60")
+        div(class="flex flex-col gap-2")
+          div(class="h-3 w-3/4 animate-pulse bg-flat-sand/60")
+          div(class="h-3 w-1/2 animate-pulse bg-flat-sand/60")
+
+    div(v-else-if="!itemResource.loading && !items.length" class="text-sm font-mono text-zinc-500") Nothing active right now.
+
+    div(v-else-if="layout === 'grid'" class="videos-grid")
+      a(
+        v-for="item in items"
+        :key="item.uuid"
+        :href="item.video.url"
+        target="_blank"
+        rel="noopener"
+        class="video-card group"
+      )
+        div(class="flex flex-wrap items-baseline gap-x-1.5 gap-y-1")
+          span(
+            v-for="tag in item.custom_tags"
+            :key="tag"
+            class="text-xs px-2 py-0.5 border-[2px] border-flat-dark font-mono font-bold text-flat-dark bg-flat-yellow/60 flex-shrink-0"
+          ) {{ tag }}
+          span(
+            v-if="item.comment"
+            class="text-sm leading-relaxed italic text-flat-spruce"
+          ) "{{ item.comment }}"
+        img(
+          v-if="item.video.thumbnail_url"
+          :src="item.video.thumbnail_url"
+          :alt="item.video.title"
+          class="w-full aspect-video object-cover"
+        )
+        div(class="flex flex-col gap-1")
+          p(class="text-xs font-semibold leading-snug line-clamp-2 group-hover:text-flat-terracotta transition-colors text-flat-dark") {{ item.video.title }}
+          p(class="text-xs text-zinc-500 font-mono")
+            span(v-if="item.video.channel") {{ item.video.channel }}
+            span(v-if="item.video.channel")  ·&nbsp;
+            span {{ item.watched_at.formatted }}
+            template(v-if="item.video.duration")
+              span  · {{ item.video.duration.formatted }}
+
+    div(v-else)
+      div(
+        v-for="item in items"
+        :key="item.uuid"
+        class="mb-6 last:mb-0 pb-6 last:pb-0 border-b-[2px] last:border-b-0 border-flat-dark/10"
+      )
+        a(:href="item.video.url" target="_blank" rel="noopener" class="block group")
+          div(
+            v-if="item.comment || item.custom_tags.length"
+            class="flex flex-wrap items-baseline gap-x-1.5 gap-y-1 mb-3"
+          )
+            span(
+              v-for="tag in item.custom_tags"
+              :key="tag"
+              class="text-xs px-2 py-0.5 border-[2px] border-flat-dark font-mono font-bold text-flat-dark bg-flat-yellow/60 flex-shrink-0"
+            ) {{ tag }}
+            span(
+              v-if="item.comment"
+              class="text-sm leading-relaxed italic text-flat-spruce"
+            ) "{{ item.comment }}"
+
+          div(class="flex gap-3 items-start")
+            img(
+              v-if="item.video.thumbnail_url"
+              :src="item.video.thumbnail_url"
+              :alt="item.video.title"
+              class="w-24 aspect-video object-cover flex-shrink-0 border border-flat-dark/20"
+            )
+            div(class="min-w-0 flex-1 flex flex-col gap-1")
+              p(class="text-xs font-semibold leading-snug line-clamp-2 group-hover:text-flat-terracotta transition-colors text-flat-dark") {{ item.video.title }}
+              p(class="text-xs text-zinc-500 font-mono")
+                span(v-if="item.video.channel") {{ item.video.channel }}
+                span(v-if="item.video.channel")  ·&nbsp;
+                span {{ item.watched_at.formatted }}
+                template(v-if="item.video.duration")
+                  span  · {{ item.video.duration.formatted }}
+
+    div(
+      v-if="totalPages > 1"
+      class="flex items-center justify-end gap-4 mt-5 pt-4 border-t-[2px] border-flat-dark/10"
+    )
       button(
         @click="prev"
         :disabled="page === 1"
@@ -76,7 +179,7 @@ Panel(header="Now Watching")
         :class="page === 1 ? 'opacity-25 cursor-default' : 'opacity-70 hover:opacity-100'"
       )
         i(class="pi pi-chevron-left text-xs")
-      span(class="text-xs tabular-nums" style="color: var(--p-text-muted-color)") {{ page }} / {{ totalPages }}
+      span(class="text-xs font-mono tabular-nums text-zinc-500") {{ page }} / {{ totalPages }}
       button(
         @click="next"
         :disabled="page === totalPages"
@@ -84,111 +187,6 @@ Panel(header="Now Watching")
         :class="page === totalPages ? 'opacity-25 cursor-default' : 'opacity-70 hover:opacity-100'"
       )
         i(class="pi pi-chevron-right text-xs")
-
-  div(v-if="itemResource.loading && layout === 'grid'" class="videos-grid")
-    div(v-for="n in 3" :key="n" class="video-card")
-      div
-      div(class="w-full aspect-video rounded animate-pulse" style="background: var(--p-surface-700)")
-      div(class="flex flex-col gap-2")
-        div(class="h-3 w-3/4 rounded animate-pulse" style="background: var(--p-surface-700)")
-        div(class="h-3 w-1/2 rounded animate-pulse" style="background: var(--p-surface-700)")
-
-  div(v-else-if="!itemResource.loading && !items.length" class="text-sm" style="color: var(--p-text-muted-color)") Nothing active right now.
-
-  div(v-else-if="layout === 'grid'" class="videos-grid")
-    a(
-      v-for="item in items"
-      :key="item.uuid"
-      :href="item.video.url"
-      target="_blank"
-      rel="noopener"
-      class="video-card group"
-    )
-      div(class="flex flex-wrap items-baseline gap-x-1.5 gap-y-1")
-        span(
-          v-for="tag in item.custom_tags"
-          :key="tag"
-          class="text-xs px-2 py-0.5 rounded-full border flex-shrink-0"
-          style="border-color: var(--p-primary-color); color: var(--p-primary-300); background: color-mix(in srgb, var(--p-primary-color) 10%, transparent)"
-        ) {{ tag }}
-        span(
-          v-if="item.comment"
-          class="text-sm leading-relaxed italic"
-          style="color: var(--p-primary-200)"
-        ) "{{ item.comment }}"
-      img(
-        v-if="item.video.thumbnail_url"
-        :src="item.video.thumbnail_url"
-        :alt="item.video.title"
-        class="w-full aspect-video object-cover rounded"
-      )
-      div(class="flex flex-col gap-1")
-        p(class="text-xs font-semibold leading-snug line-clamp-2 group-hover:text-orange-400 transition-colors") {{ item.video.title }}
-        p(class="text-xs" style="color: var(--p-text-muted-color)")
-          span(v-if="item.video.channel") {{ item.video.channel }}
-          span(v-if="item.video.channel")  ·&nbsp;
-          span {{ item.watched_at.formatted }}
-          template(v-if="item.video.duration")
-            span  · {{ item.video.duration.formatted }}
-
-  div(v-else)
-    div(
-      v-for="item in items"
-      :key="item.uuid"
-      class="mb-6 last:mb-0 pb-6 last:pb-0 border-b last:border-b-0 border-white/10"
-    )
-      a(:href="item.video.url" target="_blank" rel="noopener" class="block group")
-        div(
-          v-if="item.comment || item.custom_tags.length"
-          class="flex flex-wrap items-baseline gap-x-1.5 gap-y-1 mb-3"
-        )
-          span(
-            v-for="tag in item.custom_tags"
-            :key="tag"
-            class="text-xs px-2 py-0.5 rounded-full border flex-shrink-0"
-            style="border-color: var(--p-primary-color); color: var(--p-primary-300); background: color-mix(in srgb, var(--p-primary-color) 10%, transparent)"
-          ) {{ tag }}
-          span(
-            v-if="item.comment"
-            class="text-sm leading-relaxed italic"
-            style="color: var(--p-primary-200)"
-          ) "{{ item.comment }}"
-
-        div(class="flex gap-3 items-start")
-          img(
-            v-if="item.video.thumbnail_url"
-            :src="item.video.thumbnail_url"
-            :alt="item.video.title"
-            class="w-24 aspect-video object-cover rounded flex-shrink-0"
-          )
-          div(class="min-w-0 flex-1 flex flex-col gap-1")
-            p(class="text-xs font-semibold leading-snug line-clamp-2 group-hover:text-orange-400 transition-colors") {{ item.video.title }}
-            p(class="text-xs" style="color: var(--p-text-muted-color)")
-              span(v-if="item.video.channel") {{ item.video.channel }}
-              span(v-if="item.video.channel")  ·&nbsp;
-              span {{ item.watched_at.formatted }}
-              template(v-if="item.video.duration")
-                span  · {{ item.video.duration.formatted }}
-
-  div(
-    v-if="totalPages > 1"
-    class="flex items-center justify-end gap-4 mt-5 pt-4 border-t border-white/10"
-  )
-    button(
-      @click="prev"
-      :disabled="page === 1"
-      class="transition-opacity"
-      :class="page === 1 ? 'opacity-25 cursor-default' : 'opacity-70 hover:opacity-100'"
-    )
-      i(class="pi pi-chevron-left text-xs")
-    span(class="text-xs tabular-nums" style="color: var(--p-text-muted-color)") {{ page }} / {{ totalPages }}
-    button(
-      @click="next"
-      :disabled="page === totalPages"
-      class="transition-opacity"
-      :class="page === totalPages ? 'opacity-25 cursor-default' : 'opacity-70 hover:opacity-100'"
-    )
-      i(class="pi pi-chevron-right text-xs")
 </template>
 
 <style scoped>

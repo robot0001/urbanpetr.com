@@ -34,7 +34,7 @@ export default defineNuxtConfig({
   gtag: {
     id: process.env.NUXT_PUBLIC_GTAG_ID
   },
-  css: ['~/assets/css/global.css', '~/assets/css/background.css', '~/assets/css/primeicons-minimal.css'],
+  css: ['~/assets/css/global.css', '~/assets/css/entry-animation.css', '~/assets/css/primeicons-minimal.css'],
   primevue: {
     components: {
       include: ['Panel', 'Card']
@@ -69,7 +69,7 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
-      htmlAttrs: { class: 'dark' },
+      htmlAttrs: { class: '' },
       charset: 'utf-8',
       viewport: 'width=device-width, initial-scale=1.0',
       title: 'UrbanPetr.com',
@@ -79,7 +79,7 @@ export default defineNuxtConfig({
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap', media: 'print', onload: "this.media='all'" },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap', media: 'print', onload: "this.media='all'" },
       ]
     }
   }

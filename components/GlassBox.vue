@@ -1,4 +1,4 @@
 <template lang="pug">
-section(class="bg-white/15 rounded-2xl shadow-lg backdrop-blur-sm border border-white/25 p-4 m-4")
+section(class="bg-white border-[2px] border-flat-dark shadow-[6px_6px_0px_rgba(17,26,46,1)] p-6")
   slot
 </template>
