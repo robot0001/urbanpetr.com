@@ -34,7 +34,7 @@ export default defineNuxtConfig({
   gtag: {
     id: process.env.NUXT_PUBLIC_GTAG_ID
   },
-  css: ['~/assets/css/global.css', '~/assets/css/entry-animation.css', '~/assets/css/primeicons-minimal.css'],
+  css: ['~/assets/css/global.css', '~/assets/css/primeicons-minimal.css'],
   primevue: {
     components: {
       include: ['Panel', 'Card']
