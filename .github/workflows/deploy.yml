@@ -4,9 +4,15 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - '**/*.md'
+      - '.gitignore'
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - '**/*.md'
+      - '.gitignore'
 
 env:
   AWS_REGION: "eu-central-1"
