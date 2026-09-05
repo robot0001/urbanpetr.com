@@ -11,7 +11,9 @@
     "@nuxtjs/tailwindcss": "^6.12.2",
     "@types/node": "^25.6.0",
     "nuxt": "^3.16.0",
-    "pug": "^3.0.3"
+    "pug": "^3.0.3",
+    "typescript": "^5.9.3",
+    "vue-tsc": "^2.2.10"
   },
   "dependencies": {
     "@primeuix/themes": "^2.0.3",
