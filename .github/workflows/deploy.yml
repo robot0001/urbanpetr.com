@@ -18,10 +18,17 @@ env:
   AWS_REGION: "eu-central-1"
   S3_BUCKET_NAME: "urbanpetr-website"
 
+# Cancel superseded PR runs, but never interrupt a push: cancelling mid
+# `terraform apply` would leave prod state locked.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: github.event_name == 'pull_request'
 
     permissions:
@@ -35,6 +42,7 @@ jobs:
         uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: 1.9.8
+          terraform_wrapper: false
 
       - name: terraform fmt
         working-directory: terraform
@@ -44,6 +52,12 @@ jobs:
         uses: terraform-linters/setup-tflint@v4
         with:
           tflint_version: v0.50.3
+
+      - name: Cache tflint plugins
+        uses: actions/cache@v4
+        with:
+          path: ~/.tflint.d/plugins
+          key: ${{ runner.os }}-tflint-v0.50.3-${{ hashFiles('terraform/**/.tflint.hcl') }}
 
       - name: tflint init
         working-directory: terraform
@@ -58,6 +72,7 @@ jobs:
   typecheck:
     name: Typecheck (web + admin)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: github.event_name == 'pull_request'
 
     permissions:
@@ -90,6 +105,7 @@ jobs:
   terraform_plan_pr:
     name: Terraform plan (${{ matrix.name }})
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: github.event_name == 'pull_request'
 
     permissions:
@@ -121,18 +137,28 @@ jobs:
           echo "https://oauth2:${{ secrets.GLOBAL_MODULES_PAT }}@github.com" > ~/.git-credentials
           git config --global credential.helper store
 
+      - name: Point Terraform at a plugin cache
+        run: |
+          mkdir -p "$HOME/.cache/terraform-plugins"
+          echo "TF_PLUGIN_CACHE_DIR=$HOME/.cache/terraform-plugins" >> "$GITHUB_ENV"
+
+      - name: Cache Terraform plugins
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/terraform-plugins
+          key: ${{ runner.os }}-tf-plugins-${{ hashFiles('terraform/**/.terraform.lock.hcl') }}
+          restore-keys: |
+            ${{ runner.os }}-tf-plugins-
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: 1.9.8
+          terraform_wrapper: false
 
       - name: Terraform init
         working-directory: ${{ matrix.dir }}
         run: terraform init -input=false
-
-      - name: Terraform validate
-        working-directory: ${{ matrix.dir }}
-        run: terraform validate
 
       - name: Terraform plan
         working-directory: ${{ matrix.dir }}
@@ -141,6 +167,7 @@ jobs:
   terraform_apply:
     name: Terraform apply (prod + admin)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     if: github.event_name == 'push'
 
     permissions:
@@ -167,10 +194,24 @@ jobs:
           echo "https://oauth2:${{ secrets.GLOBAL_MODULES_PAT }}@github.com" > ~/.git-credentials
           git config --global credential.helper store
 
+      - name: Point Terraform at a plugin cache
+        run: |
+          mkdir -p "$HOME/.cache/terraform-plugins"
+          echo "TF_PLUGIN_CACHE_DIR=$HOME/.cache/terraform-plugins" >> "$GITHUB_ENV"
+
+      - name: Cache Terraform plugins
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/terraform-plugins
+          key: ${{ runner.os }}-tf-plugins-${{ hashFiles('terraform/**/.terraform.lock.hcl') }}
+          restore-keys: |
+            ${{ runner.os }}-tf-plugins-
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: 1.9.8
+          terraform_wrapper: false
 
       - name: Terraform init (prod)
         working-directory: terraform/envs/prod
@@ -209,6 +250,7 @@ jobs:
   sync_web:
     name: Build and sync (web)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: terraform_apply
     if: github.event_name == 'push'
 
@@ -256,6 +298,7 @@ jobs:
   sync_admin:
     name: Build and sync (admin)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: terraform_apply
     if: github.event_name == 'push'
 
