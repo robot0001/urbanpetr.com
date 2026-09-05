@@ -1,3 +1,3 @@
 <template lang="pug">
-ActiveVideos(:items-per-page="10" layout="grid")
+ActiveVideos(:items-per-page="12" layout="grid")
 </template>
